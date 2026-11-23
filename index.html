@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Necromancer · Arcane 3D ASCII Edition</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 35%,#171321 0%,#090a10 52%,#050609 100%);color:#e4d9cb;font:13px ui-monospace,Consolas,monospace;display:grid;place-items:center;min-height:100vh}main{width:min(100%,980px);padding:14px}header{display:flex;justify-content:space-between;align-items:center;margin:0 auto 10px;max-width:900px}h1{font-size:18px;letter-spacing:.16em;margin:0;text-shadow:0 0 18px #9a71c455}.sub{color:#b29acb;font-size:10px;letter-spacing:.16em}.stage{width:100%;max-width:980px;aspect-ratio:16/10;margin:auto;border:1px solid #51405f;border-radius:12px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 50% 57%,#30213c 0%,#15111f 42%,#070910 78%);box-shadow:0 18px 70px #0009,inset 0 0 55px #9c72c21c;touch-action:none}canvas{width:100%;height:100%;display:block;touch-action:none}.hud{max-width:980px;margin:8px auto;display:flex;align-items:center;justify-content:space-between;gap:10px}.orb{width:145px;height:42px;border:1px solid #796078;border-radius:22px;padding:5px 12px;background:#17111e;display:flex;flex-direction:column;justify-content:center;box-shadow:0 0 18px #000}.orb b{font-size:10px;letter-spacing:.16em}.orb span{font-size:11px;color:#eee}.hp b{color:#ff7777}.mana b{color:#80cfff}.level{text-align:center;font-size:11px;letter-spacing:.12em;color:#e5d4f2}.level small{color:#9c8aa8;font-size:9px}.mobilePad{position:absolute;inset:auto 12px 12px;display:flex;justify-content:space-between;align-items:end;pointer-events:none}.dpad,.skillpad{pointer-events:auto}.dpad button{width:42px;height:38px;padding:0;margin:2px;touch-action:none}.dpad>div{display:flex}.skillpad{display:flex;gap:5px;max-width:70%;overflow-x:auto;padding:4px}.skillpad button{flex:0 0 55px;width:55px;height:54px;padding:3px;font-size:19px;color:#dcbaff;touch-action:none}.skillpad small{display:block;font-size:8px}.hint{top:12px;bottom:auto}.actions{justify-content:center}.hint{position:absolute;bottom:12px;left:15px;color:#b4a4c5;font-size:10px;letter-spacing:.1em;text-shadow:0 1px 5px #000;pointer-events:none}.bar{max-width:980px;margin:14px auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:#c2b7cc;font-size:12px}button{background:linear-gradient(180deg,#292033,#17131f);border:1px solid #685477;color:#eee2d4;padding:9px 14px;border-radius:7px;cursor:pointer;font:inherit;transition:.2s}button:hover{border-color:#c2a0e5;box-shadow:0 0 18px #9b70c633}input{width:110px;accent-color:#b58cdd}.info{color:#9b8ca8;font-size:10px;letter-spacing:.08em}.actions{margin-top:6px}.actions button{padding:8px 11px}.actions{overflow-x:auto;flex-wrap:nowrap}.actions button{white-space:nowrap}.actions button.active{border-color:#c99aff;color:#e8d2ff;box-shadow:0 0 16px #9b70c655}
+</style></head><body><main>
+<header><h1>NECROMANCER <span style="color:#a58abf">/ ISOMETRIC ASCII</span></h1><span class="sub">ISOMETRIC ASCII ACTION RPG · METEOR SPELLS</span></header>
+<div class="hud"><div class="orb hp"><b>HP</b><span id="hpText">100 / 100</span></div><div class="level">NECROMANCER · LEVEL 12<br><small>THE FORGOTTEN CATACOMBS</small></div><div class="orb mana"><b>MANA</b><span id="manaText">100 / 100</span></div></div>
+<div class="stage"><div id="errorBox" style="display:none;position:absolute;z-index:5;inset:12px auto auto 12px;max-width:calc(100% - 24px);padding:10px 12px;border:1px solid #a65b67;border-radius:8px;background:#1c1018;color:#ffd7df;font:12px ui-monospace,monospace;white-space:pre-wrap"></div><canvas id="view"></canvas><span class="hint">WASD / ARROWS TO MOVE · CLICK GROUND TO WALK</span><div class="mobilePad"><div class="dpad"><button data-dir="up">▲</button><div><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div></div><div class="skillpad"><button data-skill="cast">✦<small>SOUL BOLT</small></button><button data-skill="nova">✹<small>SOUL NOVA</small></button><button data-skill="storm">☄<small>METEOR</small></button><button data-skill="warrior">♟<small>WARRIOR</small></button><button data-skill="archer">➶<small>ARCHER</small></button><button data-skill="golem">♜<small>GOLEM</small></button><button data-skill="army">☠<small>ARMY</small></button></div></div></div>
+<div class="bar actions"><button id="reset">↺ RESET POSITION</button><span class="info">SKILLS · ALL UNLOCKED</span><button data-skill="cast">✦ SOUL BOLT [1]</button><button data-skill="nova">✹ SOUL NOVA [2]</button><button data-skill="storm">☄ METEOR [3]</button><button data-skill="warrior">♟ SKELETON [4]</button><button data-skill="archer">➶ ARCHER [5]</button><button data-skill="golem">♜ BONE GOLEM [6]</button><button data-skill="army">☠ UNDEAD ARMY [7]</button><span id="summonText" class="info">SUMMONS 0 / 8</span></div>
+</main>
+<script type="module">
+const errorBox=document.querySelector('#errorBox');
+window.addEventListener('error',e=>{
+ if(errorBox){errorBox.style.display='block';errorBox.textContent='เกิดข้อผิดพลาดในการเริ่มเกม: '+(e.message||'Unknown error')+'\\nลองเปิดผ่าน Chrome และเชื่อมต่ออินเทอร์เน็ต';}
+});
+window.addEventListener('unhandledrejection',e=>{
+ if(errorBox){errorBox.style.display='block';errorBox.textContent='โหลดส่วนประกอบเกมไม่สำเร็จ: '+String(e.reason||'Unknown error')+'\\nตรวจสอบอินเทอร์เน็ตหรือการบล็อก CDN';}
+});
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const canvas=document.querySelector('#view'), stage=document.querySelector('.stage');
+// Render the 3D world to an offscreen canvas, then convert every frame to colored ASCII.
+const renderCanvas=document.createElement('canvas');
+const renderer=new THREE.WebGLRenderer({canvas:renderCanvas,alpha:false,antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1);renderer.setClearColor(0x08070d,1);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(34,1,.1,100);
+camera.position.set(5.4,3.5,7.5);
+const target=new THREE.Vector3(0,1.65,0);
+scene.add(new THREE.HemisphereLight(0xd9d0e9,0x17121d,2.35));
+scene.add(new THREE.AmbientLight(0x766184,.42));
+const key=new THREE.DirectionalLight(0xffe8cf,3.25);key.position.set(4,8,6);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-18;key.shadow.camera.right=18;key.shadow.camera.top=18;key.shadow.camera.bottom=-18;key.shadow.bias=-0.00025;key.shadow.normalBias=0.025;scene.add(key);
+const fill=new THREE.DirectionalLight(0x9270bd,2.15);fill.position.set(-5,3,-4);scene.add(fill);
+const rim=new THREE.DirectionalLight(0x8bcbff,1.65);rim.position.set(1,5,-6);scene.add(rim);
+const warm=new THREE.PointLight(0xd49bff,1.05,5);warm.position.set(-1.1,2.8,1.2);scene.add(warm);
+const group=new THREE.Group();scene.add(group);
+const backdrop=new THREE.Group();scene.add(backdrop);
+const starMat=new THREE.PointsMaterial({color:0xb99bd8,size:.025,transparent:true,opacity:.7});
+const starPositions=[];
+for(let i=0;i<150;i++){let a=Math.random()*Math.PI*2,r=3+Math.random()*5;starPositions.push(Math.cos(a)*r,Math.random()*5.5-.5,Math.sin(a)*r-1.5);}
+const starGeo=new THREE.BufferGeometry();starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3));
+backdrop.add(new THREE.Points(starGeo,starMat));
+const M=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const cloth=M(0x211c2a),cloth2=M(0x393043),black=M(0x100f18),leather=M(0x4a3541),bone=M(0xc8b99d),boneLight=M(0xe2d4b8),iron=M(0x55505f,.4,.65),violet=M(0x8058a8,.3,.2),eye=new THREE.MeshStandardMaterial({color:0xd4b5ff,emissive:0x9c55ef,emissiveIntensity:3});
+function add(g,m,p=[0,0,0],s=[1,1,1],rot=[0,0,0],parent=group){let o=new THREE.Mesh(g,m);o.position.set(...p);o.scale.set(...s);o.rotation.set(...rot);parent.add(o);return o}
+function ball(m,p,s,parent=group){return add(new THREE.SphereGeometry(1,20,14),m,p,s,[0,0,0],parent)}
+function link(a,b,r,material,parent=group){let A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=add(new THREE.CylinderGeometry(r*.82,r,d.length(),10),material,A.clone().add(B).multiplyScalar(.5).toArray(),[1,1,1],[0,0,0],parent);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return o}
+function cone(m,p,r,h,rot=[0,0,0]){return add(new THREE.ConeGeometry(r,h,8),m,p,[1,1,1],rot)}
+// Long robe torso, tapered waist and broad shoulders
+add(new THREE.CylinderGeometry(.36,.55,1.38,12,1),cloth,[0,1.34,0]);
+add(new THREE.CylinderGeometry(.49,.82,.9,12,1),cloth2,[0,.55,0]);
+add(new THREE.TorusGeometry(.39,.065,8,16),leather,[0,.94,0],[1,1,1],[Math.PI/2,0,0]);
+ball(iron,[0,.94,.02],[.13,.14,.1]);ball(bone,[0,.94,.11],[.075,.09,.045]);
+for(let i=0;i<9;i++){let a=i*Math.PI*2/9,x=Math.sin(a),z=Math.cos(a);let t=add(new THREE.ConeGeometry(.16,.55,5),i%2?cloth:cloth2,[x*.49,.2,z*.49],[1,1,1],[Math.PI,0,a]);}
+// Legs and boots visible under split robe
+for(let s of [-1,1]){
+ link([s*.2,.68,0],[s*.24,.24,.12],.115,black);
+ add(new THREE.BoxGeometry(.22,.16,.4),leather,[s*.24,.12,.22]);
+ link([s*.22,.28,.1],[s*.3,.08,.32],.06,bone);
+}
+// Shoulders, upper arms, forearms and skeletal fingers
+for(let s of [-1,1]){
+ ball(iron,[s*.48,1.9,0],[.32,.23,.34]);
+ ball(cloth2,[s*.52,1.92,.02],[.29,.2,.31]);
+ // skull/bone pauldron trim
+ link([s*.32,2.03,.18],[s*.62,2.02,.2],.045,boneLight);
+ link([s*.53,1.83,.08],[s*.67,1.48,.18],.14,cloth2);
+ ball(iron,[s*.67,1.46,.18],[.16,.15,.16]);
+ link([s*.67,1.43,.18],[s*.64,1.15,.29],.105,leather);
+ ball(bone,[s*.64,1.12,.3],[.1,.11,.09]);
+ for(let j=0;j<4;j++){let x=s*(.59+j*.045);link([s*.64,1.09,.32],[x, .88-(j%2)*.05,.37],.018,boneLight);}
+}
+// Distinct rib cage on chest
+for(let i=0;i<4;i++){let y=1.76-i*.14,w=.29-i*.035;link([-w,y,.31],[0,y-.07,.43],.033,boneLight);link([0,y-.07,.43],[w,y,.31],.033,bone);}
+link([-.25,1.82,.24],[0,2.02,.29],.035,bone);link([0,2.02,.29],[.25,1.82,.24],.035,bone);
+// Hood: cowl back, face cavity, skull, pointed crown and rim
+ball(cloth2,[0,2.53,-.04],[.57,.68,.49]);
+add(new THREE.ConeGeometry(.47,.62,9),cloth,[0,2.98,-.04],[1,1,1],[0,.1,0]);
+ball(black,[0,2.53,.34],[.38,.48,.22]);
+ball(bone,[0,2.48,.48],[.29,.37,.2]);
+add(new THREE.BoxGeometry(.34,.14,.13),bone,[0,2.22,.62]);
+for(let s of [-1,1]){
+ ball(black,[s*.115,2.54,.655],[.072,.06,.035]);
+ ball(eye,[s*.115,2.55,.687],[.025,.023,.012]);
+}
+add(new THREE.ConeGeometry(.05,.15,5),black,[0,2.39,.66],[1,1,1],[Math.PI,0,0]);
+for(let i=0;i<5;i++)link([-.12+i*.06,2.25,.64],[-.12+i*.06,2.19,.65],.009,boneLight);
+// Hood framing, brow, dangling bone charms
+link([-.38,2.48,.24],[-.3,2.85,.24],.045,bone);
+link([-.3,2.85,.24],[0,3.03,.2],.045,bone);
+link([0,3.03,.2],[.3,2.85,.24],.045,bone);
+link([.3,2.85,.24],[.38,2.48,.24],.045,bone);
+for(let s of [-1,1]){link([s*.38,2.2,.2],[s*.45,1.98,.28],.025,bone);ball(bone,[s*.45,1.94,.28],[.045,.06,.04]);}
+// Staff in left hand, clearly separate silhouette
+const staff=new THREE.Group();group.add(staff);staff.position.set(-.94,.12,-.05);staff.rotation.z=-.07;
+add(new THREE.CylinderGeometry(.035,.055,3.15,9),iron,[0,1.5,0],[1,1,1],[0,0,.04],staff);
+add(new THREE.CylinderGeometry(.017,.022,3.05,8),bone,[0,1.5,.025],[1,1,1],[0,0,.04],staff);
+ball(violet,[0,3.16,0],[.19,.24,.17],staff);ball(eye,[0,3.18,.08],[.085,.12,.075],staff);
+for(let i=0;i<4;i++){let a=i*Math.PI/2;link([Math.cos(a)*.13,3.1,Math.sin(a)*.1],[Math.cos(a)*.26,3.32,Math.sin(a)*.15],.025,boneLight,staff);}
+// animated soul wisps orbit around staff top
+const wisps=[];for(let i=0;i<5;i++){let w=new THREE.Group();group.add(w);ball(eye,[0,0,0],[.045,.085,.045],w);wisps.push(w)}
+
+// === V3 DETAIL PASS: ornate necromancer silhouette and readable materials ===
+const trim=M(0x9b876e,.55,.25), darkIron=M(0x302c39,.38,.72), rune=M(0x9f70d2,.28,.1);
+function ringAt(parent,rad,tube,pos,material,rot=[Math.PI/2,0,0]) {
+  return add(new THREE.TorusGeometry(rad,tube,7,24),material,pos,[1,1,1],rot,parent);
+}
+// Layered mantle panels framing the chest and extending behind the shoulders.
+for(const s of [-1,1]){
+  let panel=add(new THREE.ShapeGeometry((()=>{let sh=new THREE.Shape();sh.moveTo(0,0);sh.quadraticCurveTo(.22,.12,.27,.45);sh.lineTo(.17,.92);sh.lineTo(-.04,.78);sh.lineTo(-.12,.28);sh.closePath();return sh})()),cloth2,[s*.42,1.58,-.18],[s,1,1],[0,0,s*-.12]);
+  // raised shoulder plates with engraved rivets
+  add(new THREE.SphereGeometry(1,16,10),darkIron,[s*.52,2.02,.02],[.34,.22,.36]);
+  ringAt(group,.23,.025,[s*.52,2.04,.19],trim,[Math.PI/2,0,0]);
+  for(let j=0;j<3;j++)ball(trim,[s*(.39+j*.12),2.15,.12],[.025,.025,.025]);
+  // hanging chains and small bone talismans
+  for(let j=0;j<3;j++){
+    let x=s*(.47+j*.09);
+    link([x,1.86,.25],[x+s*.025,1.63,.31],.012,trim);
+    ball(boneLight,[x+s*.025,1.59,.31],[.035,.05,.025]);
+  }
+}
+// Chest harness: crossed leather straps, buckles and etched plates.
+link([-.28,2.0,.37],[.24,1.48,.42],.045,leather);
+link([.28,2.0,.37],[-.24,1.48,.42],.045,leather);
+for(let y=1.58;y<1.96;y+=.12){
+  ball(trim,[-.12+(y-1.58)*.45,y,.43],[.018,.018,.018]);
+}
+add(new THREE.OctahedronGeometry(.12,0),violet,[0,1.68,.49],[.75,1.15,.35]);
+ringAt(group,.15,.018,[0,1.68,.50],boneLight);
+// Extra layered robe strips with contrasting hems.
+for(let s of [-1,1]){
+  let flap=add(new THREE.BoxGeometry(.18,1.08,.045),s<0?cloth2:cloth,[s*.34,.68,.34],[1,1,1],[0,0,s*.16]);
+  link([s*.42,1.18,.39],[s*.49,.22,.39],.018,trim);
+  for(let k=0;k<4;k++){
+    const yy=.42+k*.17;
+    ball(trim,[s*(.34+.03*k),yy,.39],[.018,.018,.018]);
+  }
+}
+// More articulated skull details: cheek bones, brow ridge, teeth, hood seams.
+for(let s of [-1,1]){
+  link([s*.23,2.49,.57],[s*.16,2.34,.64],.035,boneLight);
+  link([s*.16,2.34,.64],[s*.04,2.31,.67],.025,bone);
+  link([s*.07,2.67,.62],[s*.19,2.68,.59],.025,boneLight);
+}
+for(let i=0;i<6;i++)add(new THREE.BoxGeometry(.025,.055,.018),boneLight,[-.105+i*.042,2.245,.685]);
+link([-.34,2.78,.18],[-.24,3.03,.13],.025,trim);
+link([.34,2.78,.18],[.24,3.03,.13],.025,trim);
+// Hood-side stitched seams and pointed cloth tails.
+for(let s of [-1,1]){
+  link([s*.43,2.62,.02],[s*.48,2.24,.08],.018,trim);
+  cone(cloth2,[s*.48,2.14,-.02],.12,.38,[0,0,s*.22]);
+}
+// Skull ornaments on belt and hanging pouches.
+for(let s of [-1,1]){
+  ball(leather,[s*.36,.94,.16],[.13,.15,.11]);
+  ball(bone,[s*.36,.96,.25],[.07,.08,.035]);
+  ball(black,[s*.34,.97,.282],[.018,.02,.012]);
+  ball(black,[s*.38,.97,.282],[.018,.02,.012]);
+}
+// Staff gets a forked crown, metal collars and engraved bands.
+for(let y of [0.35,1.05,2.2,2.75]){
+  ringAt(staff,.052,.014,[0,y,0],trim,[Math.PI/2,0,0]);
+}
+for(let s of [-1,1]){
+  link([s*.07,2.9,0],[s*.19,3.12,.01],.027,boneLight,staff);
+  link([s*.19,3.12,.01],[s*.13,3.34,.02],.022,bone,staff);
+}
+for(let i=0;i<5;i++){
+  const a=i*Math.PI*2/5;
+  ball(rune,[Math.cos(a)*.11,3.17,Math.sin(a)*.1],[.018,.018,.018],staff);
+}
+// Small floating rune motes orbit close to the crystal, not in the background.
+const runeMotes=[];
+for(let i=0;i<7;i++){
+  let m=ball(rune,[0,0,0],[.018,.018,.018]);runeMotes.push(m);
+}
+
+
+// === ARCANE DETAIL PASS: engraved armor, layered hems and occult regalia ===
+const silver=M(0xaaa0b7,.32,.78), amethyst=M(0x563477,.24,.35), gold=M(0xb99a70,.34,.68);
+const glowLine=new THREE.MeshStandardMaterial({color:0x9c72d4,emissive:0x6b35a5,emissiveIntensity:1.1,roughness:.3});
+function bead(p,sz=.025,mat=gold){ball(mat,p,[sz,sz,sz]);}
+// Filigree borders along the robe front and shoulder mantle.
+for(let s of [-1,1]){
+  for(let k=0;k<6;k++){
+    let y=.25+k*.17, x=s*(.43-.035*k);
+    bead([x,y,.405],.018,k%2?trim:gold);
+  }
+  // Layered pointed mantle tips, like torn ceremonial fabric.
+  let tip=add(new THREE.ConeGeometry(.16,.52,5),cloth,[s*.53,.46,-.12],[1,1,1],[Math.PI,0,s*.18]);
+  link([s*.48,1.65,-.12],[s*.58,.22,-.13],.018,trim);
+}
+// Ornate clasp and glowing amethyst set into the sternum.
+add(new THREE.OctahedronGeometry(.075,1),amethyst,[0,1.68,.53],[.8,1.25,.55]);
+ball(glowLine,[0,1.68,.565],[.035,.05,.018]);
+for(let s of [-1,1]){
+  link([s*.08,1.78,.48],[0,1.68,.54],.012,gold);
+  link([0,1.68,.54],[s*.08,1.57,.48],.012,gold);
+}
+// Layered collar plates beneath the hood.
+for(let s of [-1,1]){
+  let plate=add(new THREE.SphereGeometry(1,12,8),darkIron,[s*.23,2.12,.25],[.2,.11,.12]);
+  ringAt(group,.105,.012,[s*.23,2.12,.34],gold,[Math.PI/2,0,0]);
+}
+// Engraved runic marks on the staff shaft.
+for(let y of [.58,.66,1.28,1.36,2.38,2.46]){
+  bead([-.94,y,.015],.014,glowLine);
+}
+// A small skull reliquary hanging from the belt.
+link([.12,1.02,.18],[.19,.79,.24],.014,gold);
+ball(boneLight,[.19,.73,.25],[.085,.105,.065]);
+ball(black,[.16,.75,.305],[.018,.022,.012]);
+ball(black,[.22,.75,.305],[.018,.022,.012]);
+link([.16,.68,.29],[.22,.68,.29],.012,trim);
+
+// === ELITE NECROMANCER DESIGN PASS: regal, armored, intimidating silhouette ===
+const obsidian=M(0x171522,.24,.88), midnight=M(0x292238,.3,.72),
+      silverEdge=M(0xb8b4c5,.24,.82), bloodAmethyst=M(0x552080,.2,.28);
+const royalGlow=new THREE.MeshStandardMaterial({color:0x9f57ed,emissive:0x7022c8,emissiveIntensity:2.4,metalness:.25,roughness:.22});
+// Tall layered collar, angular chest armor and shoulder blades.
+for(const side of [-1,1]){
+  // swept-back mantle fins make the silhouette read as a powerful archmage
+  const fin=add(new THREE.ConeGeometry(.23,.92,5),obsidian,[side*.55,2.18,-.16],[1,1,1],[0,0,side*.72]);
+  fin.rotation.x=Math.PI*.12;
+  link([side*.34,2.12,.22],[side*.55,2.35,.28],.055,silverEdge);
+  link([side*.55,2.35,.28],[side*.73,2.12,.2],.035,gold);
+  // heavy segmented shoulder armor
+  const pauldron=add(new THREE.SphereGeometry(1,12,8),midnight,[side*.58,1.98,.04],[.39,.25,.39]);
+  ringAt(group,.27,.035,[side*.58,2.0,.27],silverEdge,[Math.PI/2,0,0]);
+  for(let k=0;k<3;k++){
+    const spike=add(new THREE.ConeGeometry(.085,.42,5),silverEdge,[side*(.48+k*.13),2.22,.02-k*.07],[1,1,1],[0,0,side*(.55+k*.18)]);
+  }
+  // violet inlaid runes on the shoulder plates
+  for(let k=0;k<3;k++)bead([side*(.43+k*.13),2.02,.315],.025,royalGlow);
+}
+// Raised gorget and angular chest crest.
+add(new THREE.CylinderGeometry(.28,.42,.22,6),obsidian,[0,2.12,.12],[1,1,1],[0,0,0]);
+const chestPlate=add(new THREE.OctahedronGeometry(.24,1),silverEdge,[0,1.78,.43],[.9,1.2,.42]);
+add(new THREE.OctahedronGeometry(.14,1),bloodAmethyst,[0,1.78,.49],[.7,1.15,.35]);
+ball(royalGlow,[0,1.78,.56],[.055,.075,.025]);
+for(let side of [-1,1]){
+  link([side*.12,1.9,.45],[0,1.78,.53],.018,gold);
+  link([0,1.78,.53],[side*.12,1.65,.45],.018,gold);
+}
+// Crown-like hood crest with three sharp prongs, framing the glowing eyes.
+for(let side of [-1,0,1]){
+  const x=side*.2;
+  link([x,2.86,.24],[x+side*.055,3.17,.2],.045,silverEdge);
+  add(new THREE.ConeGeometry(.065,.23,5),gold,[x+side*.055,3.23,.2],[1,1,1],[0,0,side*-.18]);
+}
+link([-.35,2.78,.3],[0,2.9,.38],.035,gold);
+link([0,2.9,.38],[.35,2.78,.3],.035,gold);
+// Long split ceremonial mantle behind the body, with metallic hem.
+for(let side of [-1,1]){
+  const cape=add(new THREE.BoxGeometry(.38,1.38,.07),obsidian,[side*.31,.88,-.34],[1,1,1],[0,0,side*.12]);
+  link([side*.49,1.5,-.29],[side*.58,.2,-.3],.022,silverEdge);
+  for(let k=0;k<5;k++)bead([side*(.31+k*.035),.38+k*.22,-.285],.018,k%2?gold:royalGlow);
+}
+// Armored bracers and clawed gauntlet fingers.
+for(let side of [-1,1]){
+  add(new THREE.CylinderGeometry(.13,.16,.34,8),darkIron,[side*.65,1.37,.2],[1,1,1],[0,0,side*.08]);
+  ringAt(group,.14,.025,[side*.65,1.48,.2],silverEdge,[Math.PI/2,0,0]);
+  for(let k=0;k<3;k++)link([side*(.59+k*.045),1.16,.31],[side*(.61+k*.055),.98,.39],.018,silverEdge);
+}
+// More imposing staff head: a dark-metal crescent cage around its soul crystal.
+const crownStaff=new THREE.Group();staff.add(crownStaff);
+for(let side of [-1,1]){
+  link([side*.13,3.04,0],[side*.22,3.28,.015],.035,silverEdge,crownStaff);
+  link([side*.22,3.28,.015],[side*.1,3.48,.015],.028,gold,crownStaff);
+}
+const staffHalo=ringAt(crownStaff,.25,.025,[0,3.2,.02],royalGlow,[Math.PI/2,0,0]);
+add(new THREE.OctahedronGeometry(.13,1),royalGlow,[0,3.2,.09],[.8,1.25,.8],[0,0,0],crownStaff);
+// Arcane runes glow along the robe front and belt.
+for(let k=0;k<5;k++){
+  const y=1.38-k*.2;
+  add(new THREE.OctahedronGeometry(.045,0),royalGlow,[0,y,.43],[.65,1.5,.35]);
+}
+
+// Ground sigil and subtle floating embers.
+const sigil=new THREE.Group();group.add(sigil);sigil.position.set(0,.035,0);
+const sigilMat=new THREE.MeshBasicMaterial({color:0x79569b,transparent:true,opacity:.34});
+for(let r of [.72,.9,1.08]){
+  let tor=new THREE.Mesh(new THREE.TorusGeometry(r,.008,4,96),sigilMat);
+  tor.rotation.x=Math.PI/2;tor.position.y=.015;sigil.add(tor);
+}
+for(let i=0;i<12;i++){
+  let a=i*Math.PI/6;
+  let p=add(new THREE.OctahedronGeometry(.035,0),glowLine,[Math.cos(a)*.9,.02,Math.sin(a)*.9],[1,1,1],[0,a,0],sigil);
+}
+
+
+
+// === ISOMETRIC CATACOMB WORLD ===
+scene.background=new THREE.Color(0x080910);
+const floorMat=M(0x28232b,1,0), stoneMat=M(0x514653,.95), darkStone=M(0x211d28,1), mossMat=M(0x343c32,1), torchMat=new THREE.MeshBasicMaterial({color:0xff9a45});
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(34,34),M(0x29252d,1));floor.rotation.x=-Math.PI/2;floor.position.y=-.12;scene.add(floor);
+const grid=new THREE.GridHelper(34,34,0x514454,0x39313e);grid.position.y=-.105;scene.add(grid);
+function block(x,z,w,d,h,mat=stoneMat){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);o.position.set(x,h/2-.08,z);scene.add(o);return o}
+for(let i=-16;i<=16;i+=4){block(i,-16,3.8,.55,1.2,darkStone);block(i,16,3.8,.55,1.2,darkStone);block(-16,i,.55,3.8,1.2,darkStone);block(16,i,.55,3.8,1.2,darkStone)}
+// Ruined pillars, tombs and braziers frame a walkable central courtyard.
+const torchSources=[];
+for(const [x,z] of [[-8,-7],[8,-8],[-9,7],[9,8],[-5,11],[5,-11]]){
+ block(x,z,.9,.9,2.1,stoneMat);block(x,z,.55,.55,2.25,trim);
+ const flame=new THREE.Mesh(new THREE.IcosahedronGeometry(.18,1),torchMat);flame.position.set(x,2.5,z);scene.add(flame);
+ const light=new THREE.PointLight(0xff873d,1.5,5);light.position.set(x,2.6,z);scene.add(light);
+ const glow=new THREE.Mesh(new THREE.SphereGeometry(.29,8,6),new THREE.MeshBasicMaterial({color:0xff7435,transparent:true,opacity:.12,depthWrite:false}));
+ glow.position.set(x,2.45,z);scene.add(glow);
+ torchSources.push({flame,light,glow,base:1.5,phase:x*.71+z*.37});
+}
+for(let i=0;i<20;i++){const x=(Math.random()-.5)*28,z=(Math.random()-.5)*28;if(Math.abs(x)<4&&Math.abs(z)<4)continue;block(x,z,.35+Math.random()*.6,.35+Math.random()*.6,.12,darkStone)}
+
+
+// === DARK FANTASY ATMOSPHERE PASS ===
+// Distance haze softens only the far edges of the catacombs.
+scene.fog=new THREE.FogExp2(0x100d18,.0105);
+
+// A soft radial texture creates broad, low-lying fog banks without post-process bloom.
+const fogCanvas=document.createElement('canvas');
+fogCanvas.width=128;fogCanvas.height=128;
+const fogCtx=fogCanvas.getContext('2d');
+const fogGrad=fogCtx.createRadialGradient(64,64,5,64,64,62);
+fogGrad.addColorStop(0,'rgba(173,151,202,0.25)');
+fogGrad.addColorStop(.42,'rgba(113,100,143,0.14)');
+fogGrad.addColorStop(1,'rgba(70,63,91,0)');
+fogCtx.fillStyle=fogGrad;fogCtx.fillRect(0,0,128,128);
+const fogTexture=new THREE.CanvasTexture(fogCanvas);
+const fogBanks=[];
+for(let i=0;i<9;i++){
+ const material=new THREE.MeshBasicMaterial({
+  map:fogTexture,color:i%3===0?0xb7a1d0:0x8d91b5,
+  transparent:true,opacity:.16+(i%3)*.025,depthWrite:false,
+  blending:THREE.NormalBlending,side:THREE.DoubleSide
+ });
+ const plane=new THREE.Mesh(new THREE.PlaneGeometry(5.5+(i%3)*2.1,2.4+(i%4)*.65),material);
+ plane.rotation.x=-Math.PI/2;
+ plane.position.set(Math.sin(i*2.4)*11,-.025+i*.0005,Math.cos(i*1.7)*10);
+ plane.rotation.z=i*.73;
+ plane.userData={phase:i*1.91,baseX:plane.position.x,baseZ:plane.position.z};
+ scene.add(plane);fogBanks.push(plane);
+}
+
+// Floating ash, dust and tiny embers make the torch light feel present in the air.
+const airCount=145,airPositions=new Float32Array(airCount*3),airSeeds=[];
+for(let i=0;i<airCount;i++){
+ airPositions[i*3]=(Math.random()-.5)*30;
+ airPositions[i*3+1]=.12+Math.random()*4.8;
+ airPositions[i*3+2]=(Math.random()-.5)*30;
+ airSeeds.push({phase:Math.random()*Math.PI*2,speed:.18+Math.random()*.45,baseY:airPositions[i*3+1]});
+}
+const airGeo=new THREE.BufferGeometry();
+airGeo.setAttribute('position',new THREE.BufferAttribute(airPositions,3));
+const airMat=new THREE.PointsMaterial({
+ color:0xb8a6c8,size:.035,transparent:true,opacity:.48,
+ sizeAttenuation:true,depthWrite:false
+});
+const airDust=new THREE.Points(airGeo,airMat);scene.add(airDust);
+
+// === ENVIRONMENT DETAIL PASS: STONEWORK, RUINS, GRAVES AND DEBRIS ===
+// Subtle slab joints give the floor readable scale without competing with the hero.
+const seamMat=new THREE.LineBasicMaterial({color:0x403743,transparent:true,opacity:.72});
+const crackMat=new THREE.LineBasicMaterial({color:0x17151d,transparent:true,opacity:.9});
+const seamPts=[];
+for(let v=-15;v<=15;v+=2){
+  seamPts.push(-15.5,-.083,v, 15.5,-.083,v);
+  seamPts.push(v,-.083,-15.5, v,-.083,15.5);
+}
+const seamGeo=new THREE.BufferGeometry();
+const seamFlat=[];
+for(let i=0;i<seamPts.length;i+=3)seamFlat.push(seamPts[i],seamPts[i+1],seamPts[i+2]);
+seamGeo.setAttribute('position',new THREE.Float32BufferAttribute(seamFlat,3));
+scene.add(new THREE.LineSegments(seamGeo,seamMat));
+
+// Hairline fractures branching from selected flagstones.
+function floorCrack(x,z,seed=1){
+  let pts=[],px=x,pz=z;
+  for(let j=0;j<4;j++){
+    const nx=px+Math.sin(seed*2.7+j*1.9)*(.22+j*.07);
+    const nz=pz+Math.cos(seed*1.8+j*2.1)*(.2+j*.06);
+    pts.push(new THREE.Vector3(px,-.078,pz),new THREE.Vector3(nx,-.078,nz));
+    px=nx;pz=nz;
+  }
+  const geo=new THREE.BufferGeometry().setFromPoints(pts);
+  scene.add(new THREE.LineSegments(geo,crackMat));
+}
+for(let i=0;i<34;i++){
+  const x=(Math.sin(i*17.13)*.5+.5)*28-14;
+  const z=(Math.cos(i*9.71)*.5+.5)*28-14;
+  if(Math.abs(x)<2.7&&Math.abs(z)<2.7)continue;
+  floorCrack(x,z,i+3);
+}
+
+// Broken flagstones and chipped masonry, mostly kept around the walkable lanes.
+const chippedStone=M(0x39323e,1), paleStone=M(0x625565,.98), mossDark=M(0x29352d,1);
+for(let i=0;i<46;i++){
+  const a=i*2.399,rad=4.2+(i%7)*1.45;
+  const x=Math.cos(a)*rad,z=Math.sin(a)*rad;
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(.48+(i%3)*.16,.07,.34+(i%4)*.1),i%5===0?paleStone:chippedStone);
+  slab.position.set(x,-.035,z);slab.rotation.y=(i*1.17)%Math.PI;scene.add(slab);
+  if(i%4===0){
+    const moss=new THREE.Mesh(new THREE.CircleGeometry(.32+(i%3)*.08,7),mossDark);
+    moss.rotation.x=-Math.PI/2;moss.position.set(x+.25,-.076,z-.18);moss.scale.set(1.5,.7,1);scene.add(moss);
+  }
+}
+
+// Sarcophagi: layered stone coffins with raised lids and small head markers.
+function addSarcophagus(x,z,rot=0){
+  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(1.55,.34,.82),darkStone);base.position.y=.13;g.add(base);
+  const rim=new THREE.Mesh(new THREE.BoxGeometry(1.66,.12,.9),paleStone);rim.position.y=.34;g.add(rim);
+  const lid=new THREE.Mesh(new THREE.BoxGeometry(1.42,.2,.7),stoneMat);lid.position.set(0,.48,0);lid.rotation.z=-.035;g.add(lid);
+  const inset=new THREE.Mesh(new THREE.BoxGeometry(.72,.025,.035),darkStone);inset.position.set(0,.59,0);g.add(inset);
+  const marker=new THREE.Mesh(new THREE.BoxGeometry(.28,.56,.16),chippedStone);marker.position.set(0,.57,-.52);g.add(marker);
+  const rune=new THREE.Mesh(new THREE.OctahedronGeometry(.09,0),royalGlow);rune.position.set(0,.82,-.52);g.add(rune);
+}
+addSarcophagus(-11,-3,.18);
+addSarcophagus(11,2,-.25);
+addSarcophagus(-10,11,.65);
+addSarcophagus(10,-11,-.55);
+
+// Weathered gravestones and fractured wall buttresses add a layered skyline.
+for(const [x,z,rot] of [[-13,4,.12],[13,-5,-.18],[-6,14,.45],[6,-14,-.35],[-14,-10,.2],[14,11,-.25]]){
+  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);
+  const foot=new THREE.Mesh(new THREE.BoxGeometry(.9,.18,.42),darkStone);foot.position.y=.08;g.add(foot);
+  const stone=new THREE.Mesh(new THREE.BoxGeometry(.62,.95,.22),stoneMat);stone.position.y=.62;g.add(stone);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(.44,.3,4),paleStone);cap.position.y=1.24;cap.rotation.y=Math.PI/4;g.add(cap);
+  const mark=new THREE.Mesh(new THREE.BoxGeometry(.08,.42,.025),darkStone);mark.position.set(0,.68,.125);g.add(mark);
+}
+for(let side of [-1,1]){
+  for(let z=-12;z<=12;z+=6){
+    const x=side*15.45;
+    block(x,z,.72,.72,2.0,stoneMat);
+    block(x,z,.92,.92,.16,paleStone).position.y=1.88;
+    const broken=new THREE.Mesh(new THREE.ConeGeometry(.34,.5,5),chippedStone);
+    broken.position.set(x,2.12,z);broken.rotation.z=(z%2)*.12;scene.add(broken);
+  }
+}
+
+// Scattered bones, skull-like fragments and loose rubble clusters.
+const boneMat=M(0x8a8074,.9), skullMat=M(0xaaa092,.88);
+for(let i=0;i<24;i++){
+  const a=i*2.17,rad=5.5+(i%6)*1.65,x=Math.cos(a)*rad,z=Math.sin(a)*rad;
+  const bone=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.48,5),boneMat);
+  bone.position.set(x,-.015,z);bone.rotation.set(Math.PI/2,(i%5)*.3,a);scene.add(bone);
+  if(i%3===0){
+    const skull=new THREE.Mesh(new THREE.IcosahedronGeometry(.13,1),skullMat);
+    skull.position.set(x+.24,.04,z+.12);skull.scale.set(1,.82,.9);scene.add(skull);
+    const socketMat=new THREE.MeshBasicMaterial({color:0x17131b});
+    for(const side of [-1,1]){
+      const socket=new THREE.Mesh(new THREE.SphereGeometry(.025,5,4),socketMat);
+      socket.position.set(x+.24+side*.045,.055,z+.235);scene.add(socket);
+    }
+  }
+}
+const enemies=[];
+function makeEnemy(x,z){
+ const e=new THREE.Group();scene.add(e);e.position.set(x,0,z);
+ const skin=M(0x777b65), rags=M(0x373b36), red=new THREE.MeshBasicMaterial({color:0xff554d});
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.28,.55,4,7),rags);torso.position.y=.78;e.add(torso);
+ const head=new THREE.SphereGeometry(.22,10,8);const h=new THREE.Mesh(head,skin);h.position.y=1.35;e.add(h);
+ for(const side of [-1,1]){const eyeM=new THREE.Mesh(new THREE.SphereGeometry(.035,6,5),red);eyeM.position.set(side*.09,1.38,.19);e.add(eyeM)}
+ const bar=new THREE.Mesh(new THREE.BoxGeometry(.7,.07,.04),new THREE.MeshBasicMaterial({color:0x9e3038}));bar.position.set(0,1.75,.05);e.add(bar);
+ enemies.push({mesh:e,hp:3,bar,alive:true,phase:Math.random()*6});
+}
+[[-5,-4],[5,-4],[-6,4],[6,5],[0,-8],[0,8]].forEach(p=>makeEnemy(...p));
+
+// === WORLD-SPACE SPELL VFX ===
+// These effects are independent of the character model, so they remain visible
+// in the isometric ASCII view and travel through the world.
+const worldFX=[];
+const fxMats={
+ purple:new THREE.MeshBasicMaterial({color:0xd38aff,transparent:true,opacity:.95}),
+ cyan:new THREE.MeshBasicMaterial({color:0x82eaff,transparent:true,opacity:.95}),
+ fire:new THREE.MeshBasicMaterial({color:0xff7138,transparent:true,opacity:.98}),
+ hot:new THREE.MeshBasicMaterial({color:0xffd36b,transparent:true,opacity:.98}),
+ dark:new THREE.MeshBasicMaterial({color:0x7a42c4,transparent:true,opacity:.7,side:THREE.DoubleSide})
+};
+function addFX(obj,update,duration){scene.add(obj);worldFX.push({obj,update,age:0,duration});}
+function nearestEnemy(){
+ let best=null,dist=Infinity;
+ for(const e of enemies){if(!e.alive)continue;const d=Math.hypot(e.mesh.position.x-group.position.x,e.mesh.position.z-group.position.z);if(d<dist){dist=d;best=e}}
+ return best;
+}
+function hurtEnemies(x,z,r,damage=3){
+ for(const e of enemies){if(!e.alive)continue;const d=Math.hypot(e.mesh.position.x-x,e.mesh.position.z-z);if(d<=r){e.hp-=damage;if(e.hp<=0){e.alive=false;scene.remove(e.mesh)}}}
+}
+
+// === SUMMONING SKILL LINE — ALL FOUR SKILLS UNLOCKED FOR PROTOTYPING ===
+const summons=[];
+const summonMaterials={
+ bone:new THREE.MeshStandardMaterial({color:0xc8c0a8,roughness:.9}),
+ darkBone:new THREE.MeshStandardMaterial({color:0x777184,roughness:.95}),
+ cloth:new THREE.MeshStandardMaterial({color:0x29232f,roughness:1}),
+ violet:new THREE.MeshBasicMaterial({color:0xb77cff}),
+ eye:new THREE.MeshBasicMaterial({color:0x8feaff})
+};
+
+function makeSummon(kind,x,z){
+ const unit=new THREE.Group();unit.position.set(x,0,z);scene.add(unit);
+ const isGolem=kind==="golem",isArcher=kind==="archer";
+ const scale=isGolem?1.38:1;
+ const bone=isGolem?summonMaterials.darkBone:summonMaterials.bone;
+ const dark=new THREE.MeshStandardMaterial({color:isGolem?0x393342:0x34303a,roughness:.95});
+ const iron=new THREE.MeshStandardMaterial({color:isGolem?0x65566f:0x77717e,metalness:.55,roughness:.55});
+ const violet=summonMaterials.violet;
+ const skeleton=new THREE.Group();skeleton.scale.setScalar(scale);unit.add(skeleton);
+ // รองรับทั้ง add(..., rotation) และ add(..., parent, rotation)
+ // ป้องกันการส่ง array ของ rotation เข้าไปเป็น parent จนเกิด parent.add is not a function
+ const add=(geo,mat,pos,parentOrRot=skeleton,rotMaybe=null)=>{
+  const parent=Array.isArray(parentOrRot)?skeleton:parentOrRot;
+  const rot=Array.isArray(parentOrRot)?parentOrRot:rotMaybe;
+  const mesh=new THREE.Mesh(geo,mat);mesh.position.set(...pos);
+  if(rot)mesh.rotation.set(...rot);
+  parent.add(mesh);return mesh;
+ };
+ const joint=(pos,r=.085)=>add(new THREE.IcosahedronGeometry(r,1),bone,pos);
+ const segment=(a,b,r1,r2=r1,mat=bone,parent=skeleton)=>{
+  const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),delta=vb.clone().sub(va);
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,delta.length(),7),mat);
+  mesh.position.copy(va).add(vb).multiplyScalar(.5);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());
+  parent.add(mesh);return mesh;
+ };
+
+ // Skull, separate jaw and deep sockets: unmistakably an undead skeleton.
+ const headY=1.62;
+ const cranium=add(new THREE.SphereGeometry(.235,12,9),bone,[0,headY,0]);
+ cranium.scale.set(1,.92,.86);
+ add(new THREE.BoxGeometry(.24,.105,.17),bone,[0,headY-.205,.055]);
+ for(const side of [-1,1]){
+  add(new THREE.SphereGeometry(.078,7,6),dark,[side*.09,headY+.005,.188]);
+  add(new THREE.SphereGeometry(.034,7,6),summonMaterials.eye,[side*.09,headY+.005,.226]);
+  // cheek bones and teeth
+  segment([side*.09,headY-.12,.14],[side*.17,headY-.18,.12],.035,.025,bone);
+ }
+ for(let i=0;i<4;i++)add(new THREE.BoxGeometry(.027,.055,.025),bone,[-.075+i*.05,headY-.225,.145]);
+
+ // Vertebral column, rib cage and pelvis.
+ segment([0,.78,0],[0,1.43,0],.075,.055,bone);
+ add(new THREE.SphereGeometry(.19,9,7),bone,[0,.78,0]).scale.set(1,.62,.8);
+ for(let i=0;i<5;i++){
+  const y=.91+i*.105,wide=.24-i*.012;
+  const rib=add(new THREE.TorusGeometry(wide,.031,5,14),bone,[0,y,.025],[Math.PI/2,0,0]);
+  rib.scale.set(1,.68,1);
+ }
+ segment([-.23,.78,0],[0,.69,.015],.055,.065,bone);
+ segment([0,.69,.015],[.23,.78,0],.065,.055,bone);
+ add(new THREE.SphereGeometry(.10,8,6),bone,[0,.69,0]).scale.set(1,.72,.8);
+
+ // Articulated arms and legs, built from individual bone segments.
+ const limbs={};
+ for(const side of [-1,1]){
+  const shoulder=[side*.29,1.34,0],elbow=[side*.39,1.08,.025],wrist=[side*.43,.86,.06];
+  joint(shoulder,.105);
+  limbs["arm"+side]=new THREE.Group();skeleton.add(limbs["arm"+side]);
+  const arm=limbs["arm"+side];arm.position.set(...shoulder);
+  segment([0,0,0],[side*.10,-.26,.025],.075,.06,bone,arm);
+  joint([side*.10,-.26,.025],.07);
+  segment([side*.10,-.26,.025],[side*.14,-.48,.06],.06,.045,bone,arm);
+  // Finger bones
+  for(let f=0;f<3;f++)segment([side*.14+(f-1)*.025,-.48,.06],[side*.14+(f-1)*.035,-.56,.095],.018,.012,bone,arm);
+
+  const hip=[side*.13,.66,0],knee=[side*.16,.36,.025],ankle=[side*.17,.10,.06];
+  limbs["leg"+side]=new THREE.Group();skeleton.add(limbs["leg"+side]);
+  const leg=limbs["leg"+side];leg.position.set(...hip);
+  segment([0,0,0],[side*.03,-.30,.025],.085,.065,bone,leg);
+  joint([side*.03,-.30,.025],.075);
+  segment([side*.03,-.30,.025],[side*.04,-.56,.06],.065,.045,bone,leg);
+  add(new THREE.BoxGeometry(.14,.075,.25),bone,[side*.04,-.59,.13],leg);
+ }
+
+ // Equipment silhouettes: sword and shield for warriors, bow for archers.
+ const weapon=new THREE.Group();weapon.position.set(.43,.84,.07);skeleton.add(weapon);
+ if(isArcher){
+  const bow=add(new THREE.TorusGeometry(.32,.025,6,16,Math.PI),iron,[0,.10,0],weapon,[0,0,Math.PI/2]);
+  bow.scale.set(1,1.12,1);
+  segment([0,-.22,0],[0,.42,0],.012,.012,iron,weapon);
+  // Quiver on the back
+  add(new THREE.BoxGeometry(.12,.36,.12),dark,[-.31,.28,-.13],skeleton,[.18,0,-.18]);
+  for(let q=0;q<3;q++)segment([-.36+q*.045,.48,-.14],[-.36+q*.045,.70,-.14],.014,.008,bone);
+ }else{
+  // A chipped short sword with crossguard and grip.
+  segment([0,-.05,0],[0,.46,0],.045,.012,iron,weapon);
+  add(new THREE.BoxGeometry(.25,.045,.07),iron,[0,.02,0],weapon);
+  segment([0,-.12,0],[0,-.02,0],.035,.035,dark,weapon);
+  if(!isGolem){
+   const shield=add(new THREE.BoxGeometry(.24,.34,.09),iron,[-.39,1.0,.10],skeleton,[.12,0,-.12]);
+   add(new THREE.BoxGeometry(.10,.19,.035),dark,[-.39,1.0,.16],skeleton);
+   add(new THREE.SphereGeometry(.055,7,6),violet,[-.39,1.0,.19],skeleton);
+  }else{
+   // Heavy shoulder and forearm plates for the bone golem.
+   for(const side of [-1,1]){
+    const pauldron=add(new THREE.IcosahedronGeometry(.19,1),iron,[side*.36,1.34,0]);
+    pauldron.scale.set(1,.7,.9);
+   }
+   add(new THREE.IcosahedronGeometry(.16,1),iron,[0,.68,.13]);
+  }
+ }
+
+ const aura=new THREE.Mesh(new THREE.RingGeometry(isGolem?.68:.36,isGolem?.86:.47,20),new THREE.MeshBasicMaterial({color:isGolem?0x9d72d2:0x9a83c5,transparent:true,opacity:.52,side:THREE.DoubleSide}));
+ aura.rotation.x=-Math.PI/2;aura.position.y=.035;unit.add(aura);
+ summons.push({
+  mesh:unit,body:skeleton,limbs,kind,hp:isGolem?28:isArcher?8:12,maxHp:isGolem?28:isArcher?8:12,
+  damage:isGolem?3.4:isArcher?1.8:2.5,range:isArcher?4.2:isGolem?1.35:1.05,
+  speed:isGolem?1.45:isArcher?2.05:2.35,attackCD:Math.random()*.4,
+  life:kind==="army"?18:0,phase:Math.random()*6
+ });
+}
+
+function summonSkill(kind){
+ const costs={warrior:12,archer:15,golem:32,army:45};
+ const cost=costs[kind];if(mana<cost){const label=document.querySelector('#manaText');label.textContent='NOT ENOUGH MANA';setTimeout(()=>label.textContent=mana+' / 100',900);return}
+ const living=summons.length;
+ const needed=kind==="army"?4:1;
+ if(living+needed>8){const label=document.querySelector('#summonText');label.textContent='SUMMON LIMIT 8';setTimeout(updateSummonText,1000);return}
+ mana-=cost;document.querySelector('#manaText').textContent=mana+' / 100';
+ if(kind==="army"){
+  for(let i=0;i<4;i++){const a=i*Math.PI/2;makeSummon("army",group.position.x+Math.cos(a)*1.25,group.position.z+Math.sin(a)*1.25)}
+ }else makeSummon(kind,group.position.x+(Math.random()-.5)*1.1,group.position.z+(Math.random()-.5)*1.1);
+ updateSummonText();
+ triggerAction("summon");
+}
+function updateSummonText(){
+ const n=summons.length;
+ const el=document.querySelector('#summonText');
+ if(el)el.textContent=`SUMMONS ${n} / 8`;
+}
+function updateSummons(dt,t){
+ for(let i=summons.length-1;i>=0;i--){
+  const s=summons[i],p=s.mesh.position;
+  if(s.life>0){s.life-=dt;if(s.life<=0){scene.remove(s.mesh);summons.splice(i,1);continue}}
+  const target=nearestEnemy();
+  if(target){
+   const tx=target.mesh.position.x-p.x,tz=target.mesh.position.z-p.z,dist=Math.hypot(tx,tz)||.001;
+   const desired=s.range*(s.kind==="archer"||s.kind==="army"&&i%2===1?1:.78);
+   if(dist>desired+.18){p.x+=tx/dist*s.speed*dt;p.z+=tz/dist*s.speed*dt}
+   else if(s.kind==="archer"||s.kind==="army"&&i%2===1){if(dist<desired-.8){p.x-=tx/dist*s.speed*.65*dt;p.z-=tz/dist*s.speed*.65*dt}}
+   s.mesh.rotation.y=Math.atan2(tx,tz);
+   s.attackCD-=dt;
+   if(dist<=s.range+.25&&s.attackCD<=0){
+    target.hp-=s.damage;
+    if(target.hp<=0){target.alive=false;scene.remove(target.mesh)}
+    s.attackCD=s.kind==="golem"?1.15:s.kind==="archer"?.82:.95;
+    if(s.kind==="archer"||s.kind==="army"&&i%2===1){
+     const shot=new THREE.Mesh(new THREE.OctahedronGeometry(.09),fxMats.cyan);
+     shot.position.set(p.x,.95,p.z);
+     const start=shot.position.clone(),end=new THREE.Vector3(target.mesh.position.x,1,target.mesh.position.z);
+     addFX(shot,(o,q)=>o.position.lerpVectors(start,end,q),.22);
+    }
+   }
+  }else{
+   const dx=group.position.x-p.x,dz=group.position.z-p.z,d=Math.hypot(dx,dz);
+   if(d>2.1){p.x+=dx/d*s.speed*.75*dt;p.z+=dz/d*s.speed*.75*dt}
+  }
+  s.mesh.position.y=.025*Math.sin(t*2.8+s.phase);
+  const gait=Math.sin(t*(s.kind==="golem"?4.2:7.5)+s.phase);
+  if(s.limbs){
+   [-1,1].forEach(side=>{
+    const leg=s.limbs["leg"+side],arm=s.limbs["arm"+side];
+    if(leg)leg.rotation.x=(target?gait*side*.32:Math.sin(t*1.3+s.phase)*.025);
+    if(arm)arm.rotation.x=(target? -gait*side*.2:Math.sin(t*1.1+s.phase)*.035);
+   });
+  }
+ }
+ updateSummonText();
+}
+function spawnSoulBolt(){
+ const foe=nearestEnemy(), dir=new THREE.Vector3();
+ if(foe)dir.set(foe.mesh.position.x-group.position.x,0,foe.mesh.position.z-group.position.z).normalize();
+ else dir.set(Math.sin(group.rotation.y),0,Math.cos(group.rotation.y));
+ const start=group.position.clone().add(new THREE.Vector3(0,1.55,0));
+ const end=start.clone().add(dir.clone().multiplyScalar(foe?Math.min(9,Math.hypot(foe.mesh.position.x-group.position.x,foe.mesh.position.z-group.position.z)):7));
+ const orb=new THREE.Group();
+ const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.19,1),fxMats.cyan);orb.add(core);
+ const halo=new THREE.Mesh(new THREE.SphereGeometry(.31,10,8),fxMats.purple);halo.scale.set(1,.7,1);orb.add(halo);
+ const wake=[];
+ for(let i=0;i<5;i++){
+  const bead=new THREE.Mesh(new THREE.SphereGeometry(.10-i*.012,8,6),i%2?fxMats.purple:fxMats.cyan);
+  orb.add(bead);wake.push(bead);
+  bead.position.set(0,0,-.2-i*.16);
+ }
+ let hitDone=false;
+ addFX(orb,(o,p)=>{
+  o.position.lerpVectors(start,end,p);
+  o.rotation.y=p*8;
+  wake.forEach((w,i)=>{w.position.z=-.18-i*.16;w.scale.setScalar(1-p*.55)});
+  if(p>=1&&!hitDone){
+   hitDone=true;hurtEnemies(o.position.x,o.position.z,1.25,3);
+   const burst=new THREE.Group();burst.position.copy(o.position);
+   for(let i=0;i<9;i++){
+    const a=i*Math.PI*2/9;
+    const shard=new THREE.Mesh(new THREE.TetrahedronGeometry(.12),i%2?fxMats.cyan:fxMats.purple);
+    shard.position.set(0,0,0);burst.add(shard);
+    addFX(shard,(q,t)=>{q.position.set(Math.cos(a)*t*.8,Math.sin(a)*t*.8,0);q.scale.setScalar(1-t)},.22);
+   }
+  }
+ },.42);
+ // bright muzzle flash at the staff tip
+ const flash=new THREE.PointLight(0x9c65ff,3,3);flash.position.copy(start);scene.add(flash);
+ addFX(flash,(o,p)=>{o.intensity=3*(1-p);},.22);
+}
+function spawnNova(){
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(1,.075,8,64),fxMats.cyan);
+ ring.rotation.x=Math.PI/2;ring.position.set(group.position.x,.16,group.position.z);
+ const inner=new THREE.Mesh(new THREE.RingGeometry(.25,.65,48),fxMats.purple);
+ inner.rotation.x=-Math.PI/2;inner.position.set(group.position.x,.13,group.position.z);
+ const fx=new THREE.Group();fx.add(ring,inner);
+ addFX(fx,(o,p)=>{const k=.2+p*5.8;o.scale.setScalar(k);ring.material.opacity=1-p;inner.material.opacity=1-p;ring.rotation.z=p*5;},.75);
+ // vertical soul pillars around the caster
+ for(let i=0;i<10;i++){
+  const a=i*Math.PI*2/10, pillar=new THREE.Mesh(new THREE.CylinderGeometry(.025,.12,2.3,6),i%2?fxMats.purple:fxMats.cyan);
+  pillar.position.set(group.position.x+Math.cos(a)*1.3,1.1,group.position.z+Math.sin(a)*1.3);
+  addFX(pillar,(o,p)=>{o.position.y=1.1+p*1.8;o.material.opacity=1-p;o.scale.setScalar(1-p*.7)},.55);
+ }
+ // Secondary expanding pulse and broken spectral arcs give the nova a heavier hit.
+ const pulseRing=new THREE.Mesh(new THREE.TorusGeometry(1,.045,6,72),fxMats.purple);
+ pulseRing.rotation.x=Math.PI/2;pulseRing.position.set(group.position.x,.22,group.position.z);
+ addFX(pulseRing,(o,p)=>{o.scale.setScalar(.5+p*6.5);o.material.opacity=1-p;},.68);
+ for(let i=0;i<8;i++){
+  const a=i*Math.PI/4;
+  const shard=new THREE.Mesh(new THREE.TetrahedronGeometry(.16),i%2?fxMats.cyan:fxMats.purple);
+  shard.position.set(group.position.x,1.2,group.position.z);
+  addFX(shard,(o,p)=>{o.position.set(group.position.x+Math.cos(a)*(p*3.8),1.2+Math.sin(p*Math.PI)*.8,group.position.z+Math.sin(a)*(p*3.8));o.rotation.set(p*8,p*5,p*7);o.scale.setScalar(1-p);},.55);
+ }
+ hurtEnemies(group.position.x,group.position.z,4.8,4);
+}
+function spawnMeteorImpact(x,z){
+ // 1) Scorched crater: dark center, broken glowing rim and branching cracks.
+ const impactGroup=new THREE.Group();
+ impactGroup.position.set(x,0.035,z);
+ const scorchMat=new THREE.MeshBasicMaterial({color:0x211522,transparent:true,opacity:.96});
+ const scorch=new THREE.Mesh(new THREE.CircleGeometry(1.05,32),scorchMat);
+ scorch.rotation.x=-Math.PI/2;scorch.scale.set(1.25,.82,1);impactGroup.add(scorch);
+ const craterRim=new THREE.Mesh(new THREE.TorusGeometry(1.05,.12,7,40),
+   new THREE.MeshBasicMaterial({color:0xff8a3d,transparent:true,opacity:.95}));
+ craterRim.rotation.x=Math.PI/2;craterRim.scale.set(1.25,.82,1);impactGroup.add(craterRim);
+ const innerGlow=new THREE.Mesh(new THREE.CircleGeometry(.57,24),
+   new THREE.MeshBasicMaterial({color:0x8d3c30,transparent:true,opacity:.8}));
+ innerGlow.rotation.x=-Math.PI/2;innerGlow.position.y=.012;impactGroup.add(innerGlow);
+ // jagged radial fissures etched into the ground
+ const crackMat=new THREE.LineBasicMaterial({color:0xffb36a,transparent:true,opacity:.98});
+ for(let i=0;i<11;i++){
+  const a=i*Math.PI*2/11+(Math.random()-.5)*.22;
+  const len=.85+Math.random()*1.05;
+  const pts=[new THREE.Vector3(Math.cos(a)*.72,.025,Math.sin(a)*.72)];
+  let px=pts[0].x,pz=pts[0].z;
+  for(let k=1;k<=3;k++){
+   px+=Math.cos(a+(Math.random()-.5)*.5)*len/3;
+   pz+=Math.sin(a+(Math.random()-.5)*.5)*len/3;
+   pts.push(new THREE.Vector3(px,.026,pz));
+  }
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),crackMat);
+  impactGroup.add(line);
+ }
+ addFX(impactGroup,(o,p)=>{
+  craterRim.material.opacity=.95*(1-p);innerGlow.material.opacity=.8*(1-p);
+  crackMat.opacity=.98*(1-p*.72);
+  o.scale.setScalar(1+p*.18);
+ },2.8);
+
+ // 2) Expanding pressure ring and a hot flash at ground level.
+ const shock=new THREE.Mesh(new THREE.TorusGeometry(1,.09,8,64),
+   new THREE.MeshBasicMaterial({color:0xffd27a,transparent:true,opacity:1}));
+ shock.rotation.x=Math.PI/2;shock.position.set(x,.12,z);
+ addFX(shock,(o,p)=>{o.scale.setScalar(.25+p*4.8);o.material.opacity=1-p;o.rotation.z=p*1.7},.72);
+ const flash=new THREE.PointLight(0xff6b2b,10,11);flash.position.set(x,.8,z);scene.add(flash);
+ addFX(flash,(o,p)=>{o.intensity=10*Math.pow(1-p,2)},.62);
+
+ // 3) Dust and smoke plume rising from the crater.
+ const dust=new THREE.Group();
+ for(let i=0;i<13;i++){
+  const mat=new THREE.MeshBasicMaterial({color:i%3===0?0x9a6953:0x514451,transparent:true,opacity:.58});
+  const puff=new THREE.Mesh(new THREE.SphereGeometry(.24+Math.random()*.22,8,6),mat);
+  puff.position.set((Math.random()-.5)*1.1,.15+Math.random()*.35,(Math.random()-.5)*1.1);
+  puff.userData.v=new THREE.Vector3((Math.random()-.5)*1.5,.8+Math.random()*1.8,(Math.random()-.5)*1.5);
+  dust.add(puff);
+ }
+ dust.position.set(x,0,z);
+ addFX(dust,(o,p)=>{
+  o.children.forEach(c=>{c.position.addScaledVector(c.userData.v,.016);c.scale.setScalar(1+p*2.2);c.material.opacity=.58*(1-p)});
+ },1.45);
+
+ // 4) Rock fragments physically burst outwards, arc, then fall back down.
+ const debris=new THREE.Group(), debrisItems=[];
+ for(let i=0;i<15;i++){
+  const size=.09+Math.random()*.16;
+  const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,0),
+    new THREE.MeshStandardMaterial({color:i%3===0?0x9b6448:0x49404a,roughness:1}));
+  rock.position.set(0,.12,0);debris.add(rock);
+  const a=Math.random()*Math.PI*2,vel=1.8+Math.random()*3.8;
+  debrisItems.push({rock,vx:Math.cos(a)*vel,vz:Math.sin(a)*vel,vy:2.2+Math.random()*4.2,spin:(Math.random()-.5)*12});
+ }
+ debris.position.set(x,0,z);
+ addFX(debris,(o,p,dt)=>{
+  debrisItems.forEach(d=>{
+   d.vy-=9.8*dt;
+   d.rock.position.x+=d.vx*dt;d.rock.position.z+=d.vz*dt;
+   d.rock.position.y=Math.max(.07,d.rock.position.y+d.vy*dt);
+   if(d.rock.position.y<=.071)d.vy=Math.max(0,d.vy)*-.18;
+   d.rock.rotation.x+=d.spin*dt;d.rock.rotation.z+=d.spin*.7*dt;
+  });
+ },1.65);
+
+ // 5) Flame tongues lick up around the broken ground.
+ const flames=new THREE.Group();
+ for(let i=0;i<9;i++){
+  const a=i*Math.PI*2/9,r=.65+Math.random()*.55;
+  const flame=new THREE.Mesh(new THREE.ConeGeometry(.12+Math.random()*.09,.65+Math.random()*.65,6),
+   new THREE.MeshBasicMaterial({color:i%2?0xff6a24:0xffcf65,transparent:true,opacity:.9}));
+  flame.position.set(Math.cos(a)*r,.2,Math.sin(a)*r);flame.rotation.z=(Math.random()-.5)*.35;flames.add(flame);
+ }
+ flames.position.set(x,0,z);
+ addFX(flames,(o,p)=>{o.children.forEach((f,i)=>{f.scale.y=Math.max(.01,1-p)*(.75+.3*Math.sin(p*24+i));f.material.opacity=.9*(1-p)})},1.05);
+}
+
+function spawnMeteor(x,z,delay=0){
+ const meteor=new THREE.Group();
+ const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.34,1),fxMats.hot);meteor.add(core);
+ const shell=new THREE.Mesh(new THREE.IcosahedronGeometry(.48,1),fxMats.fire);meteor.add(shell);
+ for(let i=0;i<8;i++){
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(.10+Math.random()*.08,.62+Math.random()*.48,7),
+    i%2?fxMats.fire:fxMats.hot);
+  tail.position.set((Math.random()-.5)*.2,-.48-i*.2,(Math.random()-.5)*.2);
+  tail.rotation.x=Math.PI;meteor.add(tail);
+ }
+ // Meteor travels diagonally from the sky toward the impact point.
+ // Its long flame tail stays behind the direction of travel; no tumbling spin.
+ const start=new THREE.Vector3(x-5.2,10,z-3.8);
+ const end=new THREE.Vector3(x,.48,z);
+ const velocity=end.clone().sub(start).normalize();
+ const tailDirection=velocity.clone().negate();
+ const flightOrientation=new THREE.Quaternion().setFromUnitVectors(
+   new THREE.Vector3(0,-1,0),tailDirection
+ );
+ meteor.quaternion.copy(flightOrientation);
+
+ const flightTime=.92;
+ const totalTime=delay+flightTime;
+ addFX(meteor,(o,p)=>{
+  const flightP=Math.max(0,Math.min(1,(p*totalTime-delay)/flightTime));
+  const eased=1-Math.pow(1-flightP,1.12);
+  o.visible=flightP>0;
+  o.position.lerpVectors(start,end,eased);
+  // Keep the meteor pointed along its descending path instead of spinning.
+  o.quaternion.copy(flightOrientation);
+  if(flightP>=1&&!o.userData.hit){
+   o.userData.hit=true;
+   hurtEnemies(x,z,3.2,7);
+   scene.remove(o);
+   spawnMeteorImpact(x,z);
+  }
+ },totalTime);
+}
+function spawnMeteorShower(){
+ const foe=nearestEnemy();
+ const cx=foe?foe.mesh.position.x:group.position.x+Math.sin(group.rotation.y)*3;
+ const cz=foe?foe.mesh.position.z:group.position.z+Math.cos(group.rotation.y)*3;
+ for(let i=0;i<5;i++){
+  const a=i*Math.PI*2/5,rad=i===0?0:1.8;
+  spawnMeteor(cx+Math.cos(a)*rad,cz+Math.sin(a)*rad,i*.12);
+ }
+}
+
+// === ANIMATION & SPELL SYSTEM ===
+// The original model remains intact; these lightweight effects add readable actions.
+const actionState = { mode: "idle", started: 0, duration: 0, cooldown: 0 };
+const spellGroup = new THREE.Group(); group.add(spellGroup);
+const spellOrbs = [], spellRings = [], spellBolts = [];
+const spellMat = new THREE.MeshBasicMaterial({color:0xc99aff, transparent:true, opacity:.9});
+const cyanMat = new THREE.MeshBasicMaterial({color:0x83e8ff, transparent:true, opacity:.85});
+const darkAuraMat = new THREE.MeshBasicMaterial({color:0x8e55c7, transparent:true, opacity:.22, side:THREE.DoubleSide});
+for(let i=0;i<18;i++){
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(.025+Math.random()*.025,8,6), i%3===0?cyanMat:spellMat);
+  spellGroup.add(orb); spellOrbs.push(orb);
+}
+for(let i=0;i<3;i++){
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(.42+i*.19,.012,6,64), i===1?cyanMat:spellMat);
+  ring.rotation.x=Math.PI/2; ring.visible=false; spellGroup.add(ring); spellRings.push(ring);
+}
+const aura = new THREE.Mesh(new THREE.SphereGeometry(.78,18,12),darkAuraMat);
+aura.position.set(0,1.55,0); aura.visible=false; group.add(aura);
+for(let i=0;i<6;i++){
+  const bolt = new THREE.Mesh(new THREE.CylinderGeometry(.012,.035,.7,6),i%2?spellMat:cyanMat);
+  bolt.visible=false; spellGroup.add(bolt); spellBolts.push(bolt);
+}
+function triggerAction(mode){
+  actionState.mode=mode; actionState.started=performance.now()*.001;
+  actionState.duration=mode==="cast"?.7:mode==="nova"?1.0:mode==="storm"?1.8:mode==="summon"?.65:1.6;
+  actionState.cooldown=actionState.started+actionState.duration+.18;
+  if(mode==="cast")spawnSoulBolt();
+  if(mode==="nova")spawnNova();
+  if(mode==="storm")spawnMeteorShower();
+  spellRings.forEach(r=>{r.visible=true;r.scale.setScalar(.35)});
+  aura.visible=true;
+  spellBolts.forEach(b=>b.visible=mode!=="cast");
+}
+function updateAction(t,dt){
+  const mode=actionState.mode, elapsed=t-actionState.started;
+  const active=elapsed<actionState.duration;
+  const pulse=Math.sin(t*5)*.5+.5;
+  aura.visible=active&&(mode==="cast"||mode==="nova"||mode==="storm");
+  aura.material.opacity=active?.12+.16*pulse:0;
+  spellRings.forEach((r,i)=>{
+    r.visible=active&&(mode==="cast"||mode==="nova"||mode==="storm");
+    if(r.visible){const p=Math.min(1,elapsed/actionState.duration);r.scale.setScalar(.35+p*(1.2+i*.28));r.rotation.z=t*(i%2?1.8:-1.35);r.material.opacity=(1-p)*.9;}
+    else r.material.opacity=.85;
+  });
+  spellOrbs.forEach((o,i)=>{
+    const a=t*(mode==="storm"?3.2:1.7)+i*Math.PI*2/spellOrbs.length;
+    const radius=active?(.55+Math.min(elapsed,1)*.5):.72;
+    o.visible=active;
+    o.position.set(Math.cos(a)*radius,1.2+Math.sin(a*1.7)*.75,Math.sin(a)*radius);
+    o.scale.setScalar(active?1+Math.sin(t*9+i)*.5:.001);
+  });
+  spellBolts.forEach((b,i)=>{
+    b.visible=active&&(mode==="nova"||mode==="storm");
+    if(b.visible){
+      const a=t*2.7+i*Math.PI*2/spellBolts.length;
+      b.position.set(Math.cos(a)*(.65+elapsed*.32),1.5+Math.sin(a*2)*.55,Math.sin(a)*(.65+elapsed*.32));
+      b.rotation.set(Math.sin(a)*.8,0,Math.cos(a)*.8);
+      b.scale.y=.6+Math.sin(t*12+i)*.4;
+    }
+  });
+  if(!active && mode!=="idle" && mode!=="walk") actionState.mode="idle";
+}
+
+// Isometric camera and player movement
+let zoom=1,keys={},move={x:0,z:0},destination=null,mouseDown=false;
+const cameraTarget=new THREE.Vector3();
+camera.position.set(9,12,9);
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hitPoint=new THREE.Vector3();
+const speed=4.2;
+function castSkill(mode){
+ if(['warrior','archer','golem','army'].includes(mode)){summonSkill(mode);return}
+ const now=performance.now()*.001;
+ if(now<actionState.cooldown)return;
+ const cost=mode==="cast"?5:mode==="nova"?18:25;
+ if(mana<cost){const label=document.querySelector('#manaText');label.textContent='NOT ENOUGH MANA';setTimeout(()=>label.textContent=mana+' / 100',900);return}
+ mana-=cost;document.querySelector('#manaText').textContent=mana+' / 100';
+ triggerAction(mode);
+}
+let mana=100,hp=100;
+document.addEventListener('keydown',e=>{
+ keys[e.key.toLowerCase()]=true;
+ const hotkeys={'1':'cast','2':'nova','3':'storm','4':'warrior','5':'archer','6':'golem','7':'army'};
+ if(hotkeys[e.key])castSkill(hotkeys[e.key]);
+});
+document.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'){mouseDown=true;canvas.setPointerCapture(e.pointerId)}});
+canvas.addEventListener('pointerup',e=>{
+ if(e.pointerType==='mouse'){mouseDown=false;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));raycaster.setFromCamera(pointer,camera);if(raycaster.ray.intersectPlane(groundPlane,hitPoint))destination=new THREE.Vector3(Math.max(-14,Math.min(14,hitPoint.x)),0,Math.max(-14,Math.min(14,hitPoint.z)));}
+});
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.72,Math.min(1.45,zoom+e.deltaY*.001))},{passive:false});
+document.querySelectorAll('[data-dir]').forEach(b=>{
+ const dir=b.dataset.dir, vectors={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+ const on=e=>{e.preventDefault();move.x=vectors[dir][0];move.z=vectors[dir][1]};
+ const off=e=>{e.preventDefault();move.x=0;move.z=0};
+ b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);
+});
+document.querySelectorAll('[data-skill]').forEach(b=>b.addEventListener('click',()=>castSkill(b.dataset.skill)));
+document.querySelector('#reset').addEventListener('click',()=>{
+ group.position.set(0,0,0);destination=null;zoom=1;hp=100;mana=100;summons.forEach(s=>scene.remove(s.mesh));summons.length=0;updateSummonText();
+ document.querySelector('#hpText').textContent='100 / 100';
+ document.querySelector('#manaText').textContent='100 / 100';
+ actionState.mode='idle';actionState.cooldown=0;
+});
+function resize(){let r=stage.getBoundingClientRect(),w=Math.max(300,Math.floor(r.width)),h=Math.max(250,Math.floor(r.height));renderer.setSize(w,h,false);canvas.width=w;canvas.height=h;camera.aspect=w/h;camera.updateProjectionMatrix()}
+window.addEventListener('resize',resize);resize();
+
+const sample=document.createElement('canvas'),sampleCtx=sample.getContext('2d',{willReadFrequently:true});
+const asciiRamp=' .,:;!+*xX%#&@';
+const detailRamp=' .,:;!+*xX%#&@MW';
+const projected=new THREE.Vector3();
+function projectToScreen(v,w,h){
+ projected.copy(v).project(camera);
+ return {x:(projected.x*.5+.5)*w,y:(-.5*projected.y+.5)*h};
+}
+function renderASCII(){
+ const w=canvas.width,h=canvas.height;
+ sample.width=w;sample.height=h;
+ sampleCtx.drawImage(renderCanvas,0,0,w,h);
+ const pixels=sampleCtx.getImageData(0,0,w,h).data;
+ const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#08070d';ctx.fillRect(0,0,w,h);
+ ctx.textAlign='center';ctx.textBaseline='middle';
+
+ // Project a padded ellipse around the player. It receives a finer character grid
+ // while the dungeon keeps a coarser grid to preserve visual separation.
+ const center=projectToScreen(group.localToWorld(new THREE.Vector3(0,1.55,0)),w,h);
+ const px1=projectToScreen(group.localToWorld(new THREE.Vector3(1.05,1.55,0)),w,h);
+ const px2=projectToScreen(group.localToWorld(new THREE.Vector3(0,1.55,1.05)),w,h);
+ const py=projectToScreen(group.localToWorld(new THREE.Vector3(0,3.65,0)),w,h);
+ const rx=Math.max(18,Math.abs(px1.x-center.x),Math.abs(px2.x-center.x))*1.42;
+ const ry=Math.max(22,Math.abs(py.y-center.y))*1.28;
+ const bgStep=6.2, detailStep=3.55;
+ let y=0;
+ while(y<h){
+   const yn=(y-center.y)/ry;
+   const rowDetail=Math.abs(yn)<1.12;
+   const cellH=rowDetail?detailStep:bgStep;
+   const pySample=Math.min(h-1,Math.floor(y+cellH*.5));
+   ctx.font=`bold ${Math.max(7,cellH*1.2)}px monospace`;
+   let x=0;
+   while(x<w){
+     const xn=(x-center.x)/rx;
+     const inPlayer=rowDetail && (xn*xn+yn*yn)<1.18;
+     const cellW=inPlayer?detailStep:bgStep;
+     const pxSample=Math.min(w-1,Math.floor(x+cellW*.5));
+     const i=(pySample*w+pxSample)*4;
+     let r=pixels[i],g=pixels[i+1],b=pixels[i+2];
+     let lum=(.2126*r+.7152*g+.0722*b)/255;
+     // A restrained contrast curve keeps dark cloth readable without washing out highlights.
+     lum=Math.max(0,Math.min(1,(lum-.045)*1.72));
+     const ramp=inPlayer?detailRamp:asciiRamp;
+     const index=Math.min(ramp.length-1,Math.floor(lum*(ramp.length-1)));
+     if(index>0){
+       if(inPlayer){
+         const lift=1.08;
+         r=Math.min(255,((r-112)*1.12+112)*lift);
+         g=Math.min(255,((g-112)*1.12+112)*lift);
+         b=Math.min(255,((b-112)*1.12+112)*lift);
+       }else{
+         r=Math.min(255,r*.88+5);g=Math.min(255,g*.88+5);b=Math.min(255,b*.94+8);
+       }
+       ctx.fillStyle=`rgb(${r|0},${g|0},${b|0})`;
+       // Only the brightest magical pixels get a tiny halo; no full-frame bloom.
+       if(inPlayer && lum>.78){
+         ctx.shadowColor=`rgba(${r|0},${g|0},${b|0},.32)`;
+         ctx.shadowBlur=2;
+       }else{ctx.shadowBlur=0}
+       ctx.fillText(ramp[index],x+cellW*.5,y+cellH*.5);
+       ctx.shadowBlur=0;
+     }
+     x+=cellW;
+   }
+   y+=cellH;
+ }
+}
+
+// Enable real directional shadows for the assembled dungeon and character meshes.
+scene.traverse(obj=>{
+ if(obj.isMesh){
+   obj.castShadow=true;
+   obj.receiveShadow=true;
+ }
+});
+let prev=0;function loop(ms){
+ requestAnimationFrame(loop);let dt=Math.min(.05,(ms-prev)/1000||0);prev=ms;const t=ms*.001;
+ // Prototype mode: mana regenerates so every unlocked summon can be tested repeatedly.
+ mana=Math.min(100,mana+5.5*dt);document.querySelector('#manaText').textContent=Math.floor(mana)+' / 100';
+ // Slow drifting ground mist; independent motion prevents a flat scrolling texture look.
+ fogBanks.forEach((fog,i)=>{
+  const p=fog.userData;
+  fog.position.x=p.baseX+Math.sin(t*.19+p.phase)*.72;
+  fog.position.z=p.baseZ+Math.cos(t*.16+p.phase)*.58;
+  fog.material.opacity=.12+.045*(.5+.5*Math.sin(t*.42+p.phase));
+  fog.rotation.z+=dt*.008*(i%2?1:-1);
+ });
+ // Warm torch flicker with restrained light variation and a small flame pulse.
+ torchSources.forEach((torch,i)=>{
+  const flicker=.78+.16*Math.sin(t*8.5+torch.phase)+.08*Math.sin(t*17.3+torch.phase*1.7);
+  torch.light.intensity=torch.base*flicker;
+  torch.flame.scale.set(.86+.18*Math.sin(t*11+torch.phase),.82+.25*flicker,.86+.16*Math.cos(t*9+torch.phase));
+  torch.flame.rotation.y+=dt*(1.2+i*.07);
+  torch.glow.material.opacity=.075+.045*flicker;
+  torch.glow.scale.setScalar(.88+.12*flicker);
+ });
+ // Dust drifts sideways and gently rises, then loops back into the atmosphere.
+ const ap=airGeo.attributes.position.array;
+ for(let i=0;i<airCount;i++){
+  const j=i*3,seed=airSeeds[i];
+  ap[j]+=Math.sin(t*.55+seed.phase)*dt*.12;
+  ap[j+1]=seed.baseY+Math.sin(t*seed.speed+seed.phase)*.22;
+  ap[j+2]+=Math.cos(t*.43+seed.phase)*dt*.09;
+  if(ap[j]>16)ap[j]=-16;if(ap[j]<-16)ap[j]=16;
+  if(ap[j+2]>16)ap[j+2]=-16;if(ap[j+2]<-16)ap[j+2]=16;
+ }
+ airGeo.attributes.position.needsUpdate=true;
+
+ let dx=(keys.a||keys.arrowleft?-1:0)+(keys.d||keys.arrowright?1:0)+move.x;
+ let dz=(keys.w||keys.arrowup?-1:0)+(keys.s||keys.arrowdown?1:0)+move.z;
+ if(destination){const vx=destination.x-group.position.x,vz=destination.z-group.position.z,len=Math.hypot(vx,vz);if(len<.18)destination=null;else{dx+=vx/len;dz+=vz/len}}
+ const mag=Math.hypot(dx,dz);if(mag>1){dx/=mag;dz/=mag}
+ const moving=mag>.05;
+ if(moving){group.position.x=Math.max(-14,Math.min(14,group.position.x+dx*speed*dt));group.position.z=Math.max(-14,Math.min(14,group.position.z+dz*speed*dt));group.rotation.y=Math.atan2(dx,dz);}
+ const walk=moving,elapsed=t-actionState.started;
+ group.position.y=.025*Math.sin(t*1.8)+(walk?Math.abs(Math.sin(t*9))*.055:0);
+ group.rotation.z=walk?Math.sin(t*9)*.025:Math.sin(t*1.4)*.006;
+ staff.rotation.z=-.07+.025*Math.sin(t*1.3)+(walk?Math.sin(t*9)*.12:0);
+ staff.rotation.x=0;
+ wisps.forEach((w,i)=>{let a=t*1.4+i*Math.PI*2/5;w.position.set(-.94+Math.cos(a)*.24,3.15+Math.sin(a)*.28,-.05+Math.sin(a*1.2)*.12)});
+ runeMotes.forEach((m,i)=>{let a=t*.8+i*Math.PI*2/runeMotes.length;m.position.set(Math.cos(a)*(.23+.025*Math.sin(t*2)),3.15+Math.sin(a)*.2,Math.sin(a)*.14)});
+ updateAction(t,dt);
+ updateSummons(dt,t);
+ // Enemies wander slightly and face the player.
+ enemies.forEach(e=>{if(!e.alive)return;const dxp=group.position.x-e.mesh.position.x,dzp=group.position.z-e.mesh.position.z,dist=Math.hypot(dxp,dzp);e.mesh.rotation.y=Math.atan2(dxp,dzp);if(dist<1.25&&Math.random()<.003){hp=Math.max(0,hp-2);document.querySelector('#hpText').textContent=hp+' / 100'}});
+ cameraTarget.set(group.position.x,0,group.position.z);
+ const camOffset=new THREE.Vector3(9,12,9).multiplyScalar(1/zoom);
+ camera.position.copy(cameraTarget).add(camOffset);camera.lookAt(group.position.x,0.9,group.position.z);
+ // Advance all independent spell effects in world space.
+ for(let i=worldFX.length-1;i>=0;i--){
+  const fx=worldFX[i];fx.age+=dt;const p=Math.min(1,fx.age/fx.duration);
+  fx.update(fx.obj,p,dt);
+  if(p>=1){scene.remove(fx.obj);worldFX.splice(i,1)}
+ }
+ renderer.render(scene,camera);
+ renderASCII();
+}
+requestAnimationFrame(loop);
+</script></body></html>
