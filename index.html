@@ -66,261 +66,92 @@ for(let i=0;i<150;i++){let a=Math.random()*Math.PI*2,r=3+Math.random()*5;starPos
 const starGeo=new THREE.BufferGeometry();starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3));
 backdrop.add(new THREE.Points(starGeo,starMat));
 const M=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const cloth=M(0x211c2a),cloth2=M(0x393043),black=M(0x100f18),leather=M(0x4a3541),bone=M(0xc8b99d),boneLight=M(0xe2d4b8),iron=M(0x55505f,.4,.65),violet=M(0x8058a8,.3,.2),eye=new THREE.MeshStandardMaterial({color:0xd4b5ff,emissive:0x9c55ef,emissiveIntensity:3});
+const cloth=M(0x211c2a),cloth2=M(0x393043),black=M(0x100f18),leather=M(0x4a3541),bone=M(0xc8b99d),boneLight=M(0xe2d4b8),iron=M(0x55505f,.4,.65),violet=M(0x8058a8,.3,.2),eye=new THREE.MeshStandardMaterial({color:0xff4a3a,emissive:0xe01208,emissiveIntensity:3});
 function add(g,m,p=[0,0,0],s=[1,1,1],rot=[0,0,0],parent=group){let o=new THREE.Mesh(g,m);o.position.set(...p);o.scale.set(...s);o.rotation.set(...rot);parent.add(o);return o}
 function ball(m,p,s,parent=group){return add(new THREE.SphereGeometry(1,20,14),m,p,s,[0,0,0],parent)}
 function link(a,b,r,material,parent=group){let A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=add(new THREE.CylinderGeometry(r*.82,r,d.length(),10),material,A.clone().add(B).multiplyScalar(.5).toArray(),[1,1,1],[0,0,0],parent);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return o}
 function cone(m,p,r,h,rot=[0,0,0]){return add(new THREE.ConeGeometry(r,h,8),m,p,[1,1,1],rot)}
-// Long robe torso, tapered waist and broad shoulders
-add(new THREE.CylinderGeometry(.36,.55,1.38,12,1),cloth,[0,1.34,0]);
-add(new THREE.CylinderGeometry(.49,.82,.9,12,1),cloth2,[0,.55,0]);
-add(new THREE.TorusGeometry(.39,.065,8,16),leather,[0,.94,0],[1,1,1],[Math.PI/2,0,0]);
-ball(iron,[0,.94,.02],[.13,.14,.1]);ball(bone,[0,.94,.11],[.075,.09,.045]);
-for(let i=0;i<9;i++){let a=i*Math.PI*2/9,x=Math.sin(a),z=Math.cos(a);let t=add(new THREE.ConeGeometry(.16,.55,5),i%2?cloth:cloth2,[x*.49,.2,z*.49],[1,1,1],[Math.PI,0,a]);}
-const legs={};
-// Legs and boots visible under split robe
-for(let s of [-1,1]){
- const LG=(legs[s]=new THREE.Group());LG.position.set(0,.68,0);group.add(LG);link([s*.2,0,0],[s*.24,-.44,.12],.115,black,LG);
- add(new THREE.BoxGeometry(.22,.16,.4),leather,[s*.24,-.56,.22],[1,1,1],[0,0,0],legs[s]);
- link([s*.22,-.4,.1],[s*.3,-.6,.32],.06,bone,legs[s]);
-}
-// Shoulders, upper arms, forearms and skeletal fingers
-for(let s of [-1,1]){
- ball(iron,[s*.48,1.9,0],[.32,.23,.34]);
- ball(cloth2,[s*.52,1.92,.02],[.29,.2,.31]);
- // skull/bone pauldron trim
- link([s*.32,2.03,.18],[s*.62,2.02,.2],.045,boneLight);
- link([s*.53,1.83,.08],[s*.67,1.48,.18],.14,cloth2);
- ball(iron,[s*.67,1.46,.18],[.16,.15,.16]);
- link([s*.67,1.43,.18],[s*.64,1.15,.29],.105,leather);
- ball(bone,[s*.64,1.12,.3],[.1,.11,.09]);
- for(let j=0;j<4;j++){let x=s*(.59+j*.045);link([s*.64,1.09,.32],[x, .88-(j%2)*.05,.37],.018,boneLight);}
-}
-// Distinct rib cage on chest
-for(let i=0;i<4;i++){let y=1.76-i*.14,w=.29-i*.035;link([-w,y,.31],[0,y-.07,.43],.033,boneLight);link([0,y-.07,.43],[w,y,.31],.033,bone);}
-link([-.25,1.82,.24],[0,2.02,.29],.035,bone);link([0,2.02,.29],[.25,1.82,.24],.035,bone);
-// Hood: cowl back, face cavity, skull, pointed crown and rim
-ball(cloth2,[0,2.53,-.04],[.57,.68,.49]);
-add(new THREE.ConeGeometry(.47,.62,9),cloth,[0,2.98,-.04],[1,1,1],[0,.1,0]);
-ball(black,[0,2.53,.34],[.38,.48,.22]);
-ball(bone,[0,2.48,.48],[.29,.37,.2]);
-add(new THREE.BoxGeometry(.34,.14,.13),bone,[0,2.22,.62]);
-for(let s of [-1,1]){
- ball(black,[s*.115,2.54,.655],[.072,.06,.035]);
- ball(eye,[s*.115,2.55,.687],[.025,.023,.012]);
-}
-add(new THREE.ConeGeometry(.05,.15,5),black,[0,2.39,.66],[1,1,1],[Math.PI,0,0]);
-for(let i=0;i<5;i++)link([-.12+i*.06,2.25,.64],[-.12+i*.06,2.19,.65],.009,boneLight);
-// Hood framing, brow, dangling bone charms
-link([-.38,2.48,.24],[-.3,2.85,.24],.045,bone);
-link([-.3,2.85,.24],[0,3.03,.2],.045,bone);
-link([0,3.03,.2],[.3,2.85,.24],.045,bone);
-link([.3,2.85,.24],[.38,2.48,.24],.045,bone);
-for(let s of [-1,1]){link([s*.38,2.2,.2],[s*.45,1.98,.28],.025,bone);ball(bone,[s*.45,1.94,.28],[.045,.06,.04]);}
-// Staff in left hand, clearly separate silhouette
-const staff=new THREE.Group();group.add(staff);staff.position.set(-.94,.12,-.05);staff.rotation.z=-.07;
-add(new THREE.CylinderGeometry(.035,.055,3.15,9),iron,[0,1.5,0],[1,1,1],[0,0,.04],staff);
-add(new THREE.CylinderGeometry(.017,.022,3.05,8),bone,[0,1.5,.025],[1,1,1],[0,0,.04],staff);
-ball(violet,[0,3.16,0],[.19,.24,.17],staff);ball(eye,[0,3.18,.08],[.085,.12,.075],staff);
-for(let i=0;i<4;i++){let a=i*Math.PI/2;link([Math.cos(a)*.13,3.1,Math.sin(a)*.1],[Math.cos(a)*.26,3.32,Math.sin(a)*.15],.025,boneLight,staff);}
-// animated soul wisps orbit around staff top
-const wisps=[];for(let i=0;i<5;i++){let w=new THREE.Group();group.add(w);ball(eye,[0,0,0],[.045,.085,.045],w);wisps.push(w)}
-
-// === V3 DETAIL PASS: ornate necromancer silhouette and readable materials ===
-const trim=M(0x9b876e,.55,.25), darkIron=M(0x302c39,.38,.72), rune=M(0x9f70d2,.28,.1);
-function ringAt(parent,rad,tube,pos,material,rot=[Math.PI/2,0,0]) {
-  return add(new THREE.TorusGeometry(rad,tube,7,24),material,pos,[1,1,1],rot,parent);
-}
-// Layered mantle panels framing the chest and extending behind the shoulders.
-for(const s of [-1,1]){
-  let panel=add(new THREE.ShapeGeometry((()=>{let sh=new THREE.Shape();sh.moveTo(0,0);sh.quadraticCurveTo(.22,.12,.27,.45);sh.lineTo(.17,.92);sh.lineTo(-.04,.78);sh.lineTo(-.12,.28);sh.closePath();return sh})()),cloth2,[s*.42,1.58,-.18],[s,1,1],[0,0,s*-.12]);
-  // raised shoulder plates with engraved rivets
-  add(new THREE.SphereGeometry(1,16,10),darkIron,[s*.52,2.02,.02],[.34,.22,.36]);
-  ringAt(group,.23,.025,[s*.52,2.04,.19],trim,[Math.PI/2,0,0]);
-  for(let j=0;j<3;j++)ball(trim,[s*(.39+j*.12),2.15,.12],[.025,.025,.025]);
-  // hanging chains and small bone talismans
-  for(let j=0;j<3;j++){
-    let x=s*(.47+j*.09);
-    link([x,1.86,.25],[x+s*.025,1.63,.31],.012,trim);
-    ball(boneLight,[x+s*.025,1.59,.31],[.035,.05,.025]);
-  }
-}
-// Chest harness: crossed leather straps, buckles and etched plates.
-link([-.28,2.0,.37],[.24,1.48,.42],.045,leather);
-link([.28,2.0,.37],[-.24,1.48,.42],.045,leather);
-for(let y=1.58;y<1.96;y+=.12){
-  ball(trim,[-.12+(y-1.58)*.45,y,.43],[.018,.018,.018]);
-}
-add(new THREE.OctahedronGeometry(.12,0),violet,[0,1.68,.49],[.75,1.15,.35]);
-ringAt(group,.15,.018,[0,1.68,.50],boneLight);
-// Extra layered robe strips with contrasting hems.
-for(let s of [-1,1]){
-  let flap=add(new THREE.BoxGeometry(.18,1.08,.045),s<0?cloth2:cloth,[s*.34,.68,.34],[1,1,1],[0,0,s*.16]);
-  link([s*.42,1.18,.39],[s*.49,.22,.39],.018,trim);
-  for(let k=0;k<4;k++){
-    const yy=.42+k*.17;
-    ball(trim,[s*(.34+.03*k),yy,.39],[.018,.018,.018]);
-  }
-}
-// More articulated skull details: cheek bones, brow ridge, teeth, hood seams.
-for(let s of [-1,1]){
-  link([s*.23,2.49,.57],[s*.16,2.34,.64],.035,boneLight);
-  link([s*.16,2.34,.64],[s*.04,2.31,.67],.025,bone);
-  link([s*.07,2.67,.62],[s*.19,2.68,.59],.025,boneLight);
-}
-for(let i=0;i<6;i++)add(new THREE.BoxGeometry(.025,.055,.018),boneLight,[-.105+i*.042,2.245,.685]);
-link([-.34,2.78,.18],[-.24,3.03,.13],.025,trim);
-link([.34,2.78,.18],[.24,3.03,.13],.025,trim);
-// Hood-side stitched seams and pointed cloth tails.
-for(let s of [-1,1]){
-  link([s*.43,2.62,.02],[s*.48,2.24,.08],.018,trim);
-  cone(cloth2,[s*.48,2.14,-.02],.12,.38,[0,0,s*.22]);
-}
-// Skull ornaments on belt and hanging pouches.
-for(let s of [-1,1]){
-  ball(leather,[s*.36,.94,.16],[.13,.15,.11]);
-  ball(bone,[s*.36,.96,.25],[.07,.08,.035]);
-  ball(black,[s*.34,.97,.282],[.018,.02,.012]);
-  ball(black,[s*.38,.97,.282],[.018,.02,.012]);
-}
-// Staff gets a forked crown, metal collars and engraved bands.
-for(let y of [0.35,1.05,2.2,2.75]){
-  ringAt(staff,.052,.014,[0,y,0],trim,[Math.PI/2,0,0]);
-}
-for(let s of [-1,1]){
-  link([s*.07,2.9,0],[s*.19,3.12,.01],.027,boneLight,staff);
-  link([s*.19,3.12,.01],[s*.13,3.34,.02],.022,bone,staff);
-}
-for(let i=0;i<5;i++){
-  const a=i*Math.PI*2/5;
-  ball(rune,[Math.cos(a)*.11,3.17,Math.sin(a)*.1],[.018,.018,.018],staff);
-}
-// Small floating rune motes orbit close to the crystal, not in the background.
+// === DIABLO-2 STYLE NECROMANCER ===
+const trim=M(0x9b876e,.55,.25),gold=M(0xb99a70,.34,.68),rune=M(0x9f70d2,.28,.1),skinM=M(0x858a7c,.85),woodM=M(0x2a1f1c,.9),hide=M(0x5a4033,.9);
+const glowLine=new THREE.MeshStandardMaterial({color:0xc84048,emissive:0x8a1018,emissiveIntensity:1.1,roughness:.3});
+const royalGlow=new THREE.MeshStandardMaterial({color:0xd0403a,emissive:0xa01018,emissiveIntensity:2.4,metalness:.25,roughness:.22});
 const runeMotes=[];
-for(let i=0;i<7;i++){
-  let m=ball(rune,[0,0,0],[.018,.018,.018]);runeMotes.push(m);
+// torso, skirt, belt
+add(new THREE.CylinderGeometry(.3,.38,.8,12),cloth,[0,1.68,0]);
+add(new THREE.CylinderGeometry(.4,.52,.6,12),cloth2,[0,.88,0]);
+add(new THREE.TorusGeometry(.4,.06,8,18),leather,[0,1.22,0],[1,1,1],[Math.PI/2,0,0]);
+ball(boneLight,[0,1.22,.4],[.09,.1,.05]);
+for(const s of [-1,1])ball(black,[s*.03,1.23,.445],[.016,.02,.01]);
+// tabard + long back cloak
+add(new THREE.BoxGeometry(.3,.85,.04),leather,[0,.64,.53]);
+link([-.15,.22,.55],[.15,.22,.55],.016,bone);
+add(new THREE.OctahedronGeometry(.05,0),royalGlow,[0,.8,.56],[.7,1.4,.4]);
+add(new THREE.BoxGeometry(.78,1.7,.06),cloth,[0,1.15,-.36],[1,1,1],[.08,0,0]);
+link([-.38,.32,-.42],[.38,.32,-.42],.018,trim);for(let i=0;i<8;i++)cone(cloth,[-.34+i*.097,.2,-.4],.07,.38,[Math.PI,0,0]);for(let i=0;i<6;i++)cone(boneLight,[0,2.05-i*.2,-.4],.045,.2,[-1.2,0,0]);
+// bone rib armour on the chest
+for(let i=0;i<5;i++){const y=2.0-i*.13,w=.3-i*.03;link([-w,y,.2],[0,y-.05,.34],.03,boneLight);link([0,y-.05,.34],[w,y,.2],.03,bone)}
+link([0,2.05,.33],[0,1.5,.36],.035,boneLight);
+// tall dark collar with bone spikes
+add(new THREE.CylinderGeometry(.3,.4,.3,10),cloth2,[0,2.14,0]);
+for(const s of [-1,1])cone(boneLight,[s*.3,2.36,-.04],.05,.28,[0,0,-s*.35]);
+// head: pale face, glowing eyes, goatee, hood
+ball(skinM,[0,2.42,.04],[.18,.25,.19]);ball(skinM,[0,2.27,.1],[.12,.12,.11]);for(const s of [-1,1])ball(black,[s*.13,2.33,.14],[.045,.08,.035]);
+cone(skinM,[0,2.4,.25],.04,.1,[Math.PI/2,0,0]);
+for(const s of [-1,1]){ball(black,[s*.08,2.46,.18],[.065,.05,.04]);ball(eye,[s*.08,2.46,.215],[.03,.022,.014]);link([s*.02,2.5,.2],[s*.15,2.6,.16],.03,black)}
+link([-.075,2.29,.19],[.075,2.29,.19],.014,black);for(let i=0;i<7;i++)add(new THREE.ConeGeometry(.008,i%3===1?.05:.032,4),boneLight,[-.06+i*.02,2.3,.205],[1,1,1],[Math.PI,0,0]);
+cone(black,[0,2.17,.19],.045,.16,[Math.PI,0,0]);
+ball(cloth,[0,2.5,-.08],[.28,.31,.28]);
+add(new THREE.TorusGeometry(.235,.05,8,22),cloth2,[0,2.46,.08]);
+add(new THREE.ConeGeometry(.22,.5,8),cloth,[0,2.86,-.12],[1,1,1],[-.4,0,0]);for(const s of [-1,1]){cone(bone,[s*.24,2.82,0],.055,.46,[0,0,-s*.65]);cone(boneLight,[s*.38,3.05,0],.03,.22,[0,0,-s*.25])}
+add(new THREE.TorusGeometry(.2,.014,6,20),boneLight,[0,2.62,.06],[1,1,1],[Math.PI/2.3,0,0]);
+// pauldrons with bone spikes, skull on the left
+for(const s of [-1,1]){
+ ball(leather,[s*.5,2.02,0],[.3,.17,.3]);
+ add(new THREE.TorusGeometry(.26,.03,6,16),boneLight,[s*.5,1.95,0],[1,1,1],[Math.PI/2,0,0]);
+ for(let k=0;k<5;k++)cone(boneLight,[s*(.34+k*.1),2.15+(k%2)*.07,-.02],.06,.44,[0,0,-s*(.35+k*.2)]);
 }
-
-
-// === ARCANE DETAIL PASS: engraved armor, layered hems and occult regalia ===
-const silver=M(0xaaa0b7,.32,.78), amethyst=M(0x563477,.24,.35), gold=M(0xb99a70,.34,.68);
-const glowLine=new THREE.MeshStandardMaterial({color:0x9c72d4,emissive:0x6b35a5,emissiveIntensity:1.1,roughness:.3});
-function bead(p,sz=.025,mat=gold){ball(mat,p,[sz,sz,sz]);}
-// Filigree borders along the robe front and shoulder mantle.
-for(let s of [-1,1]){
-  for(let k=0;k<6;k++){
-    let y=.25+k*.17, x=s*(.43-.035*k);
-    bead([x,y,.405],.018,k%2?trim:gold);
-  }
-  // Layered pointed mantle tips, like torn ceremonial fabric.
-  let tip=add(new THREE.ConeGeometry(.16,.52,5),cloth,[s*.53,.46,-.12],[1,1,1],[Math.PI,0,s*.18]);
-  link([s*.48,1.65,-.12],[s*.58,.22,-.13],.018,trim);
+ball(boneLight,[-.6,2.1,.16],[.1,.11,.09]);
+for(const s of [-1,1])ball(black,[-.6+s*.035,2.12,.235],[.022,.026,.012]);
+// shrunken head and pouch on the belt
+link([-.36,1.2,.3],[-.4,.97,.34],.01,trim);
+ball(skinM,[-.4,.9,.34],[.07,.085,.07]);cone(black,[-.4,.97,.33],.07,.1,[0,0,0]);
+for(const s of [-1,1])ball(black,[-.4+s*.025,.92,.4],[.012,.014,.008]);
+ball(hide,[.38,1.0,.28],[.1,.12,.08]);link([.2,1.18,.4],[.24,.9,.46],.01,trim);ball(boneLight,[.24,.84,.47],[.07,.08,.06]);for(const s of [-1,1])ball(black,[.24+s*.025,.85,.52],[.014,.018,.01]);for(const x of [-.08,.02,.1])add(new THREE.BoxGeometry(.04,.3+x*1.5,.012),M(0x6a0f14,.5),[x,.62,.555]);
+// legs and boots
+const legs={};
+for(const s of [-1,1]){
+ const LG=(legs[s]=new THREE.Group());LG.position.set(0,.68,0);group.add(LG);
+ link([s*.14,0,0],[s*.16,-.34,.05],.1,black,LG);link([s*.16,-.34,.05],[s*.17,-.6,.08],.08,leather,LG);
+ ball(bone,[s*.16,-.34,.12],[.07,.08,.05],LG);
+ add(new THREE.BoxGeometry(.2,.14,.34),leather,[s*.17,-.64,.18],[1,1,1],[0,0,0],LG);
 }
-// Ornate clasp and glowing amethyst set into the sternum.
-add(new THREE.OctahedronGeometry(.075,1),amethyst,[0,1.68,.53],[.8,1.25,.55]);
-ball(glowLine,[0,1.68,.565],[.035,.05,.018]);
-for(let s of [-1,1]){
-  link([s*.08,1.78,.48],[0,1.68,.54],.012,gold);
-  link([0,1.68,.54],[s*.08,1.57,.48],.012,gold);
-}
-// Layered collar plates beneath the hood.
-for(let s of [-1,1]){
-  let plate=add(new THREE.SphereGeometry(1,12,8),darkIron,[s*.23,2.12,.25],[.2,.11,.12]);
-  ringAt(group,.105,.012,[s*.23,2.12,.34],gold,[Math.PI/2,0,0]);
-}
-// Engraved runic marks on the staff shaft.
-for(let y of [.58,.66,1.28,1.36,2.38,2.46]){
-  bead([-.94,y,.015],.014,glowLine);
-}
-// A small skull reliquary hanging from the belt.
-link([.12,1.02,.18],[.19,.79,.24],.014,gold);
-ball(boneLight,[.19,.73,.25],[.085,.105,.065]);
-ball(black,[.16,.75,.305],[.018,.022,.012]);
-ball(black,[.22,.75,.305],[.018,.022,.012]);
-link([.16,.68,.29],[.22,.68,.29],.012,trim);
-
-// === ELITE NECROMANCER DESIGN PASS: regal, armored, intimidating silhouette ===
-const obsidian=M(0x171522,.24,.88), midnight=M(0x292238,.3,.72),
-      silverEdge=M(0xb8b4c5,.24,.82), bloodAmethyst=M(0x552080,.2,.28);
-const royalGlow=new THREE.MeshStandardMaterial({color:0x9f57ed,emissive:0x7022c8,emissiveIntensity:2.4,metalness:.25,roughness:.22});
-// Tall layered collar, angular chest armor and shoulder blades.
-for(const side of [-1,1]){
-  // swept-back mantle fins make the silhouette read as a powerful archmage
-  const fin=add(new THREE.ConeGeometry(.23,.92,5),obsidian,[side*.55,2.18,-.16],[1,1,1],[0,0,side*.72]);
-  fin.rotation.x=Math.PI*.12;
-  link([side*.34,2.12,.22],[side*.55,2.35,.28],.055,silverEdge);
-  link([side*.55,2.35,.28],[side*.73,2.12,.2],.035,gold);
-  // heavy segmented shoulder armor
-  const pauldron=add(new THREE.SphereGeometry(1,12,8),midnight,[side*.58,1.98,.04],[.39,.25,.39]);
-  ringAt(group,.27,.035,[side*.58,2.0,.27],silverEdge,[Math.PI/2,0,0]);
-  for(let k=0;k<3;k++){
-    const spike=add(new THREE.ConeGeometry(.085,.42,5),silverEdge,[side*(.48+k*.13),2.22,.02-k*.07],[1,1,1],[0,0,side*(.55+k*.18)]);
-  }
-  // violet inlaid runes on the shoulder plates
-  for(let k=0;k<3;k++)bead([side*(.43+k*.13),2.02,.315],.025,royalGlow);
-}
-// Raised gorget and angular chest crest.
-add(new THREE.CylinderGeometry(.28,.42,.22,6),obsidian,[0,2.12,.12],[1,1,1],[0,0,0]);
-const chestPlate=add(new THREE.OctahedronGeometry(.24,1),silverEdge,[0,1.78,.43],[.9,1.2,.42]);
-add(new THREE.OctahedronGeometry(.14,1),bloodAmethyst,[0,1.78,.49],[.7,1.15,.35]);
-ball(royalGlow,[0,1.78,.56],[.055,.075,.025]);
-for(let side of [-1,1]){
-  link([side*.12,1.9,.45],[0,1.78,.53],.018,gold);
-  link([0,1.78,.53],[side*.12,1.65,.45],.018,gold);
-}
-// Crown-like hood crest with three sharp prongs, framing the glowing eyes.
-for(let side of [-1,0,1]){
-  const x=side*.2;
-  link([x,2.86,.24],[x+side*.055,3.17,.2],.045,silverEdge);
-  add(new THREE.ConeGeometry(.065,.23,5),gold,[x+side*.055,3.23,.2],[1,1,1],[0,0,side*-.18]);
-}
-link([-.35,2.78,.3],[0,2.9,.38],.035,gold);
-link([0,2.9,.38],[.35,2.78,.3],.035,gold);
-// Long split ceremonial mantle behind the body, with metallic hem.
-for(let side of [-1,1]){
-  const cape=add(new THREE.BoxGeometry(.38,1.38,.07),obsidian,[side*.31,.88,-.34],[1,1,1],[0,0,side*.12]);
-  link([side*.49,1.5,-.29],[side*.58,.2,-.3],.022,silverEdge);
-  for(let k=0;k<5;k++)bead([side*(.31+k*.035),.38+k*.22,-.285],.018,k%2?gold:royalGlow);
-}
-// Armored bracers and clawed gauntlet fingers.
-for(let side of [-1,1]){
-  add(new THREE.CylinderGeometry(.13,.16,.34,8),darkIron,[side*.65,1.37,.2],[1,1,1],[0,0,side*.08]);
-  ringAt(group,.14,.025,[side*.65,1.48,.2],silverEdge,[Math.PI/2,0,0]);
-  for(let k=0;k<3;k++)link([side*(.59+k*.045),1.16,.31],[side*(.61+k*.055),.98,.39],.018,silverEdge);
-}
-// More imposing staff head: a dark-metal crescent cage around its soul crystal.
-const crownStaff=new THREE.Group();staff.add(crownStaff);
-for(let side of [-1,1]){
-  link([side*.13,3.04,0],[side*.22,3.28,.015],.035,silverEdge,crownStaff);
-  link([side*.22,3.28,.015],[side*.1,3.48,.015],.028,gold,crownStaff);
-}
-const staffHalo=ringAt(crownStaff,.25,.025,[0,3.2,.02],royalGlow,[Math.PI/2,0,0]);
-add(new THREE.OctahedronGeometry(.13,1),royalGlow,[0,3.2,.09],[.8,1.25,.8],[0,0,0],crownStaff);
-// Arcane runes glow along the robe front and belt.
-for(let k=0;k<5;k++){
-  const y=1.38-k*.2;
-  add(new THREE.OctahedronGeometry(.045,0),royalGlow,[0,y,.43],[.65,1.5,.35]);
-}
-
-// Arms get shoulder pivots so they can swing and cast
+// arms: pivots at the shoulders, hand sits at (+-.14,-.68,.3) in pivot space
 const arms={};
-for(const s of [-1,1]){const P=new THREE.Group();P.position.set(s*.5,1.8,0);group.add(P);arms[s]=P}
-for(const m of [...group.children]){if(!m.isMesh)continue;const px=m.position.x,py=m.position.y;if(Math.abs(px)>.52&&py>1&&py<1.8){const P=arms[px<0?-1:1];P.add(m);m.position.sub(P.position)}}
+for(const s of [-1,1]){
+ const P=new THREE.Group();P.position.set(s*.5,1.8,0);group.add(P);arms[s]=P;
+ link([0,0,0],[s*.12,-.34,.14],.09,cloth2,P);ball(cloth2,[s*.12,-.34,.14],[.1,.1,.1],P);
+ link([s*.12,-.34,.14],[s*.14,-.66,.3],.075,leather,P);
+ link([s*.126,-.43,.18],[s*.136,-.6,.27],.09,bone,P);
+ ball(skinM,[s*.14,-.7,.32],[.07,.07,.075],P);
+ for(let j=0;j<3;j++)link([s*.14+(j-1)*.03,-.72,.34],[s*.14+(j-1)*.03,-.8,.38],.015,skinM,P);
+}
+// skull-topped staff
+const staff=new THREE.Group();group.add(staff);staff.position.set(-.94,.12,-.05);
+add(new THREE.CylinderGeometry(.035,.05,3.1,9),woodM,[0,1.5,0],[1,1,1],[0,0,0],staff);
+for(const y of [.4,1.0,2.6])add(new THREE.TorusGeometry(.05,.014,6,14),trim,[0,y,0],[1,1,1],[Math.PI/2,0,0],staff);
+ball(boneLight,[0,3.28,0],[.15,.18,.14],staff);ball(bone,[0,3.13,.05],[.08,.05,.07],staff);
+for(const s of [-1,1]){
+ ball(black,[s*.055,3.3,.11],[.035,.04,.02],staff);ball(eye,[s*.055,3.3,.125],[.014,.014,.01],staff);
+ link([s*.1,3.38,0],[s*.22,3.62,0],.025,bone,staff);link([s*.22,3.62,0],[s*.14,3.76,0],.018,boneLight,staff);
+}
+const wisps=[];for(let i=0;i<5;i++){let w=new THREE.Group();group.add(w);ball(eye,[0,0,0],[.045,.085,.045],w);wisps.push(w)}
+// ground shadow + sigil
 const bc=document.createElement('canvas');bc.width=bc.height=64;const bx=bc.getContext('2d'),bgd=bx.createRadialGradient(32,32,2,32,32,32);bgd.addColorStop(0,'rgba(0,0,0,.55)');bgd.addColorStop(1,'rgba(0,0,0,0)');bx.fillStyle=bgd;bx.fillRect(0,0,64,64);
 const blob=new THREE.Mesh(new THREE.PlaneGeometry(2.4,2.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(bc),transparent:true,depthWrite:false}));blob.userData.ns=1;blob.rotation.x=-Math.PI/2;blob.position.y=.02;group.add(blob);
-// Ground sigil and subtle floating embers.
 const sigil=new THREE.Group();group.add(sigil);sigil.position.set(0,.035,0);
-const sigilMat=new THREE.MeshBasicMaterial({color:0x79569b,transparent:true,opacity:.34});
-for(let r of [.72,.9,1.08]){
-  let tor=new THREE.Mesh(new THREE.TorusGeometry(r,.008,4,96),sigilMat);
-  tor.rotation.x=Math.PI/2;tor.position.y=.015;sigil.add(tor);
-}
-for(let i=0;i<12;i++){
-  let a=i*Math.PI/6;
-  let p=add(new THREE.OctahedronGeometry(.035,0),glowLine,[Math.cos(a)*.9,.02,Math.sin(a)*.9],[1,1,1],[0,a,0],sigil);
-}
-
-
+const sigilMat=new THREE.MeshBasicMaterial({color:0x9a1c2a,transparent:true,opacity:.34});
+for(let r of [.72,.9,1.08]){let tor=new THREE.Mesh(new THREE.TorusGeometry(r,.008,4,96),sigilMat);tor.rotation.x=Math.PI/2;tor.position.y=.015;sigil.add(tor)}
+for(let i=0;i<12;i++){let a=i*Math.PI/6;add(new THREE.OctahedronGeometry(.035,0),glowLine,[Math.cos(a)*.9,.02,Math.sin(a)*.9],[1,1,1],[0,a,0],sigil)}
 
 const catStart=scene.children.length;
 // === ISOMETRIC CATACOMB WORLD ===
@@ -345,7 +176,7 @@ for(let i=0;i<20;i++){const x=(Math.random()-.5)*28,z=(Math.random()-.5)*28;if(M
 
 // === DARK FANTASY ATMOSPHERE PASS ===
 // Distance haze softens only the far edges of the catacombs.
-scene.fog=new THREE.FogExp2(0x100d18,.0105);
+scene.fog=new THREE.FogExp2(0x160a10,.0125);
 
 // A soft radial texture creates broad, low-lying fog banks without post-process bloom.
 const fogCanvas=document.createElement('canvas');
@@ -532,7 +363,7 @@ function meadowTick(t,dt){if(!meadow.visible)return;gu.uTime.value=t;waterTex.of
  for(let i=0;i<pN;i++){const j=i*3;pp[j]+=dt*(.9+Math.sin(t+pSeed[i])*.4);pp[j+1]+=Math.sin(t*1.3+pSeed[i])*dt*.25;pp[j+2]+=dt*.3;if(pp[j]>26)pp[j]=-26;if(pp[j+2]>26)pp[j+2]=-26}
  pollenGeo.attributes.position.needsUpdate=true}
 function setMap(n){const cat=n==='cat';curMap=n;catObjs.forEach(o=>{o.visible=cat});meadow.visible=!cat;lim=cat?14:24;
- scene.background.setHex(cat?0x080910:0x2c3f55);scene.fog.color.setHex(cat?0x100d18:0x2c3f55);scene.fog.density=(cat?.0105:.006)*Math.min(1,zoom*zoom*2.2);
+ scene.background.setHex(cat?0x080910:0x2c3f55);scene.fog.color.setHex(cat?0x160a10:0x2c3f55);scene.fog.density=(cat?.0105:.006)*Math.min(1,zoom*zoom*2.2);
  const hm=scene.children.find(o=>o.isHemisphereLight);hm.color.setHex(cat?0xd9d0e9:0xbfd8ff);hm.groundColor.setHex(cat?0x17121d:0x4a5a30);
  key.color.setHex(cat?0xffe8cf:0xffc98c);warm.color.setHex(cat?0xd49bff:0xffd9a0);warm.intensity=cat?1.05:.5;fill.color.setHex(cat?0x9270bd:0x6a9fd8);fill.intensity=cat?2.15:1.2;
  group.position.set(0,0,0);destination=null;
@@ -1023,7 +854,7 @@ function updateAction(t,dt){
 }
 
 // Isometric camera and player movement
-let yaw=0,elev=1,dragLast=null,dragging=false,lim=14;let zoom=1,keys={},move={x:0,z:0},destination=null,mouseDown=false;
+let yaw=0,elev=1,dragLast=null,dragging=false,lim=14,baseYaw=0;let zoom=innerWidth<760?.62:.8,keys={},move={x:0,z:0},destination=null,mouseDown=false;
 const cameraTarget=new THREE.Vector3();
 camera.position.set(9,12,9);
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
@@ -1045,7 +876,7 @@ document.addEventListener('keydown',e=>{
  if(hotkeys[e.key])castSkill(hotkeys[e.key]);
 });
 document.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-let downPt=null;const touches=new Map();let pinch0=0,zoom0=1;const pinchDist=()=>{const a=[...touches.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1};const setZoom=v=>{zoom=Math.max(.24,Math.min(2,v));scene.fog.density=(curMap==='cat'?.0105:.006)*Math.min(1,zoom*zoom*2.2)};const tapOK=e=>downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)<12&&performance.now()-downPt.t<350;
+let downPt=null;const touches=new Map();let pinch0=0,zoom0=1;const pinchDist=()=>{const a=[...touches.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1};const setZoom=v=>{zoom=Math.max(.4,Math.min(2,v));scene.fog.density=(curMap==='cat'?.0105:.006)*Math.min(1,zoom*zoom*2.2)};const tapOK=e=>downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)<12&&performance.now()-downPt.t<350;
 canvas.addEventListener('pointerdown',e=>{downPt={x:e.clientX,y:e.clientY,t:performance.now()};if(e.pointerType==='touch'){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===2){pinch0=pinchDist();zoom0=zoom;downPt=null}}if(e.pointerType==='mouse'){mouseDown=true;canvas.setPointerCapture(e.pointerId)}});
 canvas.addEventListener('pointerup',e=>{
  if(tapOK(e)||(e.pointerType==='mouse'&&!dragging)){mouseDown=false;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));raycaster.setFromCamera(pointer,camera);if(raycaster.ray.intersectPlane(groundPlane,hitPoint))destination=new THREE.Vector3(Math.max(-lim,Math.min(lim,hitPoint.x)),0,Math.max(-lim,Math.min(lim,hitPoint.z)));}
@@ -1065,7 +896,7 @@ document.querySelectorAll('[data-dir]').forEach(b=>{
 });
 document.querySelectorAll('[data-skill]').forEach(b=>b.addEventListener('click',()=>castSkill(b.dataset.skill)));
 document.querySelector('#reset').addEventListener('click',()=>{
- group.position.set(0,0,0);destination=null;zoom=1;hp=100;mana=100;summons.forEach(s=>scene.remove(s.mesh));summons.length=0;updateSummonText();
+ group.position.set(0,0,0);destination=null;zoom=innerWidth<760?.62:.8;hp=100;mana=100;summons.forEach(s=>scene.remove(s.mesh));summons.length=0;updateSummonText();
  document.querySelector('#hpText').textContent='100 / 100';
  document.querySelector('#manaText').textContent='100 / 100';
  actionState.mode='idle';actionState.cooldown=0;
@@ -1077,6 +908,13 @@ const sample=document.createElement('canvas'),sampleCtx=sample.getContext('2d',{
 const asciiRamp=' .,:;!+*xX%#&@';
 const detailRamp=' .,:;!+*xX%#&@MW';
 const projected=new THREE.Vector3();const EDGE=['-',String.fromCharCode(92),'|','/'];const P=['.,:`',';!+*i=','xX%#&$','@#&%MW8'],MAGIC='*x+X#@&%';
+const kf=(u,a)=>{for(let i=1;i<a.length;i++)if(u<=a[i][0]){const q=(u-a[i-1][0])/(a[i][0]-a[i-1][0]),e=q*q*(3-2*q);return a[i-1][1]+(a[i][1]-a[i-1][1])*e}return a[a.length-1][1]};
+const Z=[[0,0],[1,0]];
+const POSE={
+ cast:{Lx:[[0,0],[.28,.55],[.5,-1.55],[.8,-1.45],[1,0]],Lz:Z,Rx:[[0,0],[.28,-.5],[.5,.4],[.8,.3],[1,0]],Rz:Z,ln:[[0,0],[.28,-.08],[.5,.2],[.8,.15],[1,0]],tw:[[0,0],[.28,-.3],[.5,.28],[.8,.2],[1,0]],lf:Z},
+ nova:{Lx:[[0,0],[.3,.3],[.45,-1],[.8,-.9],[1,0]],Lz:[[0,0],[.3,.1],[.45,-.4],[.8,-.35],[1,0]],Rx:[[0,0],[.3,.3],[.45,-.9],[.8,-.8],[1,0]],Rz:[[0,0],[.3,.1],[.45,1.2],[.8,1.1],[1,0]],ln:[[0,0],[.3,.18],[.45,-.15],[.8,-.1],[1,0]],tw:Z,lf:[[0,0],[.3,-.08],[.45,.2],[.8,.15],[1,0]]},
+ storm:{Lx:[[0,0],[.25,-2.7],[.7,-2.9],[.82,-.9],[1,0]],Lz:[[0,0],[.25,-.3],[.7,-.3],[.82,0],[1,0]],Rx:[[0,0],[.25,-2.4],[.7,-2.5],[.82,-.4],[1,0]],Rz:[[0,0],[.25,.5],[.7,.5],[.82,0],[1,0]],ln:[[0,0],[.25,-.25],[.7,-.25],[.82,.25],[1,0]],tw:[[0,0],[.25,-.15],[.7,-.15],[.82,.2],[1,0]],lf:[[0,0],[.25,.4],[.7,.4],[.82,0],[1,0]]},
+ summon:{Lx:[[0,0],[.35,-.8],[1,0]],Lz:[[0,0],[.35,-.3],[1,0]],Rx:[[0,0],[.35,-.8],[1,0]],Rz:[[0,0],[.35,.3],[1,0]],ln:[[0,0],[.35,.25],[1,0]],tw:Z,lf:Z}};
 function projectToScreen(v,w,h){
  projected.copy(v).project(camera);
  return {x:(projected.x*.5+.5)*w,y:(-.5*projected.y+.5)*h};
@@ -1193,7 +1031,7 @@ let prev=0;function loop(ms){
  if(destination){const vx=destination.x-group.position.x,vz=destination.z-group.position.z,len=Math.hypot(vx,vz);if(len<.18)destination=null;else{dx+=vx/len;dz+=vz/len}}
  const mag=Math.hypot(dx,dz);if(mag>1){dx/=mag;dz/=mag}
  const moving=mag>.05;
- if(moving){group.position.x=Math.max(-lim,Math.min(lim,group.position.x+dx*speed*dt));group.position.z=Math.max(-lim,Math.min(lim,group.position.z+dz*speed*dt));group.rotation.y=Math.atan2(dx,dz);}
+ if(moving){group.position.x=Math.max(-lim,Math.min(lim,group.position.x+dx*speed*dt));group.position.z=Math.max(-lim,Math.min(lim,group.position.z+dz*speed*dt));baseYaw=Math.atan2(dx,dz);group.rotation.y=baseYaw;}
  const walk=moving,elapsed=t-actionState.started;
  group.position.y=.025*Math.sin(t*1.8)+(walk?Math.abs(Math.sin(t*9))*.055:0);
  group.rotation.z=walk?Math.sin(t*9)*.025:Math.sin(t*1.4)*.006;
@@ -1205,12 +1043,17 @@ let prev=0;function loop(ms){
  updateSummons(dt,t);
  {const sw=walk?Math.sin(t*9)*.6:0;legs[1].rotation.x=sw;legs[-1].rotation.x=-sw;
   const m=actionState.mode,live=m!=='idle'&&elapsed<actionState.duration;
-  const tgt=live?(m==='cast'?-1.35:m==='nova'?-2.2:m==='storm'?-2.9+Math.sin(t*10)*.25:-1.0):(walk?-sw*.8:Math.sin(t*1.5)*.04);
-  arms[1].rotation.x+=(tgt-arms[1].rotation.x)*Math.min(1,dt*10);const p0=live?Math.min(1,elapsed/actionState.duration):0,lf=Math.sin(p0*Math.PI);
-  arms[-1].rotation.x=(live?(m==='storm'?-2.3*lf-.1:m==='nova'?-1.1*lf:-.45*lf):(walk?sw*.4:0))+Math.sin(t*1.3)*.03;
-  group.rotation.order='YXZ';const lean=live?(m==='cast'?.2:m==='nova'?-.16:m==='storm'?-.22:.22)*lf:0;group.rotation.x+=(lean-group.rotation.x)*Math.min(1,dt*10);
-  group.position.y+=live?(m==='storm'?.42*lf:m==='nova'?.16*lf:0):0;
-  staff.rotation.x=live?.55*lf*(m==='cast'?1:.5):0;staff.position.y=.12+(live&&m==='storm'?.45*lf:0);
+  const tgt=0;
+  const u=live?Math.min(1,elapsed/actionState.duration):0,Q=live?POSE[m]:null,V=k=>Q?kf(u,Q[k]):0,br=Math.sin(t*1.4)*.03;
+  const tLx=Q?V('Lx'):(walk?sw*.25:0)+br,tRx=Q?V('Rx'):(walk?-sw*.9:br),tLz=V('Lz')-(Q?0:.16),tRz=V('Rz')+(Q?0:.06),k1=Math.min(1,dt*16);
+  arms[-1].rotation.x+=(tLx-arms[-1].rotation.x)*k1;arms[-1].rotation.z+=(tLz-arms[-1].rotation.z)*k1;arms[1].rotation.x+=(tRx-arms[1].rotation.x)*k1;arms[1].rotation.z+=(tRz-arms[1].rotation.z)*k1;
+  group.rotation.order='YXZ';group.rotation.x+=(V('ln')-group.rotation.x)*Math.min(1,dt*12);group.rotation.y=baseYaw+V('tw');group.position.y+=V('lf');
+  {const th=arms[-1].rotation.x,ph=-th*.62;arms[-1].updateMatrix();const hv=new THREE.Vector3(-.14,-.68,.3).applyMatrix4(arms[-1].matrix);
+   staff.rotation.x=ph;staff.position.set(hv.x,hv.y-Math.cos(ph),hv.z-Math.sin(ph));const dv=new THREE.Vector3(hv.x+.94,hv.y-Math.cos(ph)+3.03*Math.cos(ph)-3.15,hv.z-Math.sin(ph)+3.03*Math.sin(ph)+.05);wisps.forEach(w=>w.position.add(dv))}
+  
+  
+  
+  
   const g=live?1-elapsed/actionState.duration:0;eye.emissiveIntensity=3+6*g;royalGlow.emissiveIntensity=2.4+4*g;sigilMat.opacity=.34+.4*g;sigil.rotation.y=t*(.3+g*2);
   if(!key.target.parent)scene.add(key.target);key.position.set(group.position.x+4,8,group.position.z+6);key.target.position.set(group.position.x,0,group.position.z);key.target.updateMatrixWorld();warm.position.set(group.position.x-1.1,2.8,group.position.z+1.2);
  meadowTick(t,dt);banners.forEach((b,i)=>b.rotation.z=Math.sin(t*1.2+i)*.07);altarGems.forEach((q,i)=>{q.rotation.y=t*(1+i*.3);q.position.y+=Math.sin(t*2+i)*.0015});
