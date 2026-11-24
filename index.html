@@ -1,7 +1,32 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Necromancer · Arcane 3D ASCII Edition</title>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090a10"><title>Necromancer · Arcane 3D ASCII Edition</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 35%,#171321 0%,#090a10 52%,#050609 100%);color:#e4d9cb;font:13px ui-monospace,Consolas,monospace;display:grid;place-items:center;min-height:100vh}main{width:min(100%,980px);padding:14px}header{display:flex;justify-content:space-between;align-items:center;margin:0 auto 10px;max-width:900px}h1{font-size:18px;letter-spacing:.16em;margin:0;text-shadow:0 0 18px #9a71c455}.sub{color:#b29acb;font-size:10px;letter-spacing:.16em}.stage{width:100%;max-width:980px;aspect-ratio:16/10;margin:auto;border:1px solid #51405f;border-radius:12px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 50% 57%,#30213c 0%,#15111f 42%,#070910 78%);box-shadow:0 18px 70px #0009,inset 0 0 55px #9c72c21c;touch-action:none}canvas{width:100%;height:100%;display:block;touch-action:none}.hud{max-width:980px;margin:8px auto;display:flex;align-items:center;justify-content:space-between;gap:10px}.orb{width:145px;height:42px;border:1px solid #796078;border-radius:22px;padding:5px 12px;background:#17111e;display:flex;flex-direction:column;justify-content:center;box-shadow:0 0 18px #000}.orb b{font-size:10px;letter-spacing:.16em}.orb span{font-size:11px;color:#eee}.hp b{color:#ff7777}.mana b{color:#80cfff}.level{text-align:center;font-size:11px;letter-spacing:.12em;color:#e5d4f2}.level small{color:#9c8aa8;font-size:9px}.mobilePad{position:absolute;inset:auto 12px 12px;display:flex;justify-content:space-between;align-items:end;pointer-events:none}.dpad,.skillpad{pointer-events:auto}.dpad button{width:42px;height:38px;padding:0;margin:2px;touch-action:none}.dpad>div{display:flex}.skillpad{display:flex;gap:5px;max-width:70%;overflow-x:auto;padding:4px}.skillpad button{flex:0 0 55px;width:55px;height:54px;padding:3px;font-size:19px;color:#dcbaff;touch-action:none}.skillpad small{display:block;font-size:8px}.hint{top:12px;bottom:auto}.actions{justify-content:center}.hint{position:absolute;bottom:12px;left:15px;color:#b4a4c5;font-size:10px;letter-spacing:.1em;text-shadow:0 1px 5px #000;pointer-events:none}.bar{max-width:980px;margin:14px auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:#c2b7cc;font-size:12px}button{background:linear-gradient(180deg,#292033,#17131f);border:1px solid #685477;color:#eee2d4;padding:9px 14px;border-radius:7px;cursor:pointer;font:inherit;transition:.2s}button:hover{border-color:#c2a0e5;box-shadow:0 0 18px #9b70c633}input{width:110px;accent-color:#b58cdd}.info{color:#9b8ca8;font-size:10px;letter-spacing:.08em}.actions{margin-top:6px}.actions button{padding:8px 11px}.actions{overflow-x:auto;flex-wrap:nowrap}.actions button{white-space:nowrap}.actions button.active{border-color:#c99aff;color:#e8d2ff;box-shadow:0 0 16px #9b70c655}
+
+html,body{max-width:100%;overflow-x:hidden;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+main{min-width:0;width:100%}
+.bar,.actions{max-width:100%}
+.skillpad button.cool{opacity:.45}
+@media (max-width:760px){
+ body{display:block;min-height:100dvh}
+ main{padding:8px}
+ header{margin-bottom:6px}
+ h1{font-size:14px;letter-spacing:.1em}.sub{display:none}
+ .hud{gap:6px;margin:4px 0}
+ .orb{width:92px;height:38px;padding:4px 8px}.orb span{font-size:10px}
+ .level{font-size:9px;letter-spacing:.04em}.level small{font-size:8px}
+ .stage{aspect-ratio:auto;height:calc(100dvh - 150px);min-height:360px;max-height:760px;border-radius:10px}
+ .hint{display:none}
+ .mobilePad{inset:auto 8px 8px;gap:8px}
+ .dpad button{width:48px;height:44px;margin:2px;font-size:16px;background:#17131fcc}
+ .skillpad{display:grid;grid-template-columns:repeat(4,52px);gap:5px;max-width:none;overflow:visible;padding:0}
+ .skillpad button{flex:none;width:52px;height:50px;font-size:18px;background:#17131fcc}
+ .skillpad small{font-size:7px;line-height:1}
+ .bar.actions{margin:6px 0;gap:8px;flex-wrap:wrap;overflow:visible}
+ .bar.actions>button[data-skill],.bar.actions>.info:not(#summonText){display:none}
+ .bar.actions button{padding:7px 10px;font-size:11px}
+}
 </style></head><body><main>
 <header><h1>NECROMANCER <span style="color:#a58abf">/ ISOMETRIC ASCII</span></h1><span class="sub">ISOMETRIC ASCII ACTION RPG · METEOR SPELLS</span></header>
 <div class="hud"><div class="orb hp"><b>HP</b><span id="hpText">100 / 100</span></div><div class="level">NECROMANCER · LEVEL 12<br><small>THE FORGOTTEN CATACOMBS</small></div><div class="orb mana"><b>MANA</b><span id="manaText">100 / 100</span></div></div>
@@ -17,6 +42,7 @@ window.addEventListener('unhandledrejection',e=>{
  if(errorBox){errorBox.style.display='block';errorBox.textContent='โหลดส่วนประกอบเกมไม่สำเร็จ: '+String(e.reason||'Unknown error')+'\\nตรวจสอบอินเทอร์เน็ตหรือการบล็อก CDN';}
 });
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+document.addEventListener('contextmenu',e=>e.preventDefault());
 const canvas=document.querySelector('#view'), stage=document.querySelector('.stage');
 // Render the 3D world to an offscreen canvas, then convert every frame to colored ASCII.
 const renderCanvas=document.createElement('canvas');
@@ -944,9 +970,10 @@ document.addEventListener('keydown',e=>{
  if(hotkeys[e.key])castSkill(hotkeys[e.key]);
 });
 document.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'){mouseDown=true;canvas.setPointerCapture(e.pointerId)}});
+let downPt=null;const tapOK=e=>downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)<12&&performance.now()-downPt.t<350;
+canvas.addEventListener('pointerdown',e=>{downPt={x:e.clientX,y:e.clientY,t:performance.now()};if(e.pointerType==='mouse'){mouseDown=true;canvas.setPointerCapture(e.pointerId)}});
 canvas.addEventListener('pointerup',e=>{
- if(e.pointerType==='mouse'){mouseDown=false;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));raycaster.setFromCamera(pointer,camera);if(raycaster.ray.intersectPlane(groundPlane,hitPoint))destination=new THREE.Vector3(Math.max(-14,Math.min(14,hitPoint.x)),0,Math.max(-14,Math.min(14,hitPoint.z)));}
+ if(e.pointerType==='mouse'||tapOK(e)){mouseDown=false;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));raycaster.setFromCamera(pointer,camera);if(raycaster.ray.intersectPlane(groundPlane,hitPoint))destination=new THREE.Vector3(Math.max(-14,Math.min(14,hitPoint.x)),0,Math.max(-14,Math.min(14,hitPoint.z)));}
 });
 canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.72,Math.min(1.45,zoom+e.deltaY*.001))},{passive:false});
 document.querySelectorAll('[data-dir]').forEach(b=>{
@@ -963,7 +990,7 @@ document.querySelector('#reset').addEventListener('click',()=>{
  actionState.mode='idle';actionState.cooldown=0;
 });
 function resize(){let r=stage.getBoundingClientRect(),w=Math.max(300,Math.floor(r.width)),h=Math.max(250,Math.floor(r.height));renderer.setSize(w,h,false);canvas.width=w;canvas.height=h;camera.aspect=w/h;camera.updateProjectionMatrix()}
-window.addEventListener('resize',resize);resize();
+window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,250));resize();
 
 const sample=document.createElement('canvas'),sampleCtx=sample.getContext('2d',{willReadFrequently:true});
 const asciiRamp=' .,:;!+*xX%#&@';
@@ -990,7 +1017,7 @@ function renderASCII(){
  const py=projectToScreen(group.localToWorld(new THREE.Vector3(0,3.65,0)),w,h);
  const rx=Math.max(18,Math.abs(px1.x-center.x),Math.abs(px2.x-center.x))*1.42;
  const ry=Math.max(22,Math.abs(py.y-center.y))*1.28;
- const bgStep=6.2, detailStep=3.55;
+ const small=innerWidth<760;const bgStep=small?8:6.2, detailStep=small?4.7:3.55;
  let y=0;
  while(y<h){
    const yn=(y-center.y)/ry;
