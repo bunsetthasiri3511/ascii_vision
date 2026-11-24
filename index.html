@@ -32,7 +32,7 @@ main{min-width:0;width:100%}
 <header><h1>NECROMANCER <span style="color:#a58abf">/ ISOMETRIC ASCII</span></h1><span class="sub">ISOMETRIC ASCII ACTION RPG · METEOR SPELLS</span></header>
 <div class="hud"><div class="orb hp"><b>HP</b><span id="hpText">100 / 100</span></div><div class="level">NECROMANCER · LEVEL 12<br><small>THE FORGOTTEN CATACOMBS</small></div><div class="orb mana"><b>MANA</b><span id="manaText">100 / 100</span></div></div>
 <div class="stage"><div id="errorBox" style="display:none;position:absolute;z-index:5;inset:12px auto auto 12px;max-width:calc(100% - 24px);padding:10px 12px;border:1px solid #a65b67;border-radius:8px;background:#1c1018;color:#ffd7df;font:12px ui-monospace,monospace;white-space:pre-wrap"></div><canvas id="view"></canvas><span class="hint">WASD / ARROWS TO MOVE · CLICK TO WALK · DRAG TO ROTATE</span><div class="mobilePad"><div class="dpad"><button data-dir="up">▲</button><div><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div></div><div class="skillpad"><button data-skill="cast">✦<small>SOUL BOLT</small></button><button data-skill="nova">✹<small>SOUL NOVA</small></button><button data-skill="storm">☄<small>METEOR</small></button><button data-skill="warrior">♟<small>WARRIOR</small></button><button data-skill="archer">➶<small>ARCHER</small></button><button data-skill="golem">♜<small>GOLEM</small></button><button data-skill="army">☠<small>ARMY</small></button></div></div></div>
-<div class="bar actions"><button id="reset">↺ RESET POSITION</button><button data-map="cat" class="active">☠ CATACOMBS</button><button data-map="meadow">🌿 MEADOW</button><button id="zin" aria-label="ซูมเข้า">＋</button><button id="zout" aria-label="ซูมออก">－</button><span class="info">SKILLS · ALL UNLOCKED</span><button data-skill="cast">✦ SOUL BOLT [1]</button><button data-skill="nova">✹ SOUL NOVA [2]</button><button data-skill="storm">☄ METEOR [3]</button><button data-skill="warrior">♟ SKELETON [4]</button><button data-skill="archer">➶ ARCHER [5]</button><button data-skill="golem">♜ BONE GOLEM [6]</button><button data-skill="army">☠ UNDEAD ARMY [7]</button><span id="summonText" class="info">SUMMONS 0 / 8</span></div>
+<div class="bar actions"><button id="reset">↺ RESET POSITION</button><button id="showBtn">🎭 SHOWCASE</button><button data-map="cat" class="active">☠ CATACOMBS</button><button data-map="meadow">🌿 MEADOW</button><button id="zin" aria-label="ซูมเข้า">＋</button><button id="zout" aria-label="ซูมออก">－</button><span class="info">SKILLS · ALL UNLOCKED</span><button data-skill="cast">✦ SOUL BOLT [1]</button><button data-skill="nova">✹ SOUL NOVA [2]</button><button data-skill="storm">☄ METEOR [3]</button><button data-skill="warrior">♟ SKELETON [4]</button><button data-skill="archer">➶ ARCHER [5]</button><button data-skill="golem">♜ BONE GOLEM [6]</button><button data-skill="army">☠ UNDEAD ARMY [7]</button><span id="summonText" class="info">SUMMONS 0 / 8</span></div>
 </main>
 <script type="module">
 const errorBox=document.querySelector('#errorBox');
@@ -369,7 +369,17 @@ function setMap(n){const cat=n==='cat';curMap=n;catObjs.forEach(o=>{o.visible=ca
  group.position.set(0,0,0);destination=null;
  document.querySelectorAll('[data-map]').forEach(b=>b.classList.toggle('active',b.dataset.map===n));
  document.querySelector('.level small').textContent=cat?'THE FORGOTTEN CATACOMBS':'THE WINDSWEPT MEADOW'}
-document.querySelectorAll('[data-map]').forEach(b=>b.addEventListener('click',()=>setMap(b.dataset.map)));
+document.querySelectorAll('[data-map]').forEach(b=>b.addEventListener('click',()=>{if(show)setShow(false);setMap(b.dataset.map)}));
+let show=false;const pre={};
+function setShow(on){show=on;
+ if(on){pre.z=zoom;pre.e=elev;catObjs.forEach(o=>o.visible=false);meadow.visible=false;enemies.forEach(e=>e.mesh.visible=false);scene.background.setHex(0x050307);scene.fog.color.setHex(0x050307);setZoom(1.15);scene.fog.density=0;elev=.62;sigil.scale.setScalar(1.8)}
+ else{setMap(curMap);enemies.forEach(e=>e.mesh.visible=true);setZoom(pre.z);elev=pre.e;sigil.scale.setScalar(1)}
+ group.position.set(0,0,0);destination=null;document.querySelector('#showBtn').classList.toggle('active',on)}
+document.querySelector('#showBtn').addEventListener('click',()=>setShow(!show));
+// spotlight: red rim light behind, cool light in front, and a glowing pool under the hero
+const rimPt=new THREE.PointLight(0xff3a2a,10,10),frontPt=new THREE.PointLight(0xc8b0ff,6,9);scene.add(rimPt,frontPt);
+const pc=document.createElement('canvas');pc.width=pc.height=64;{const x=pc.getContext('2d'),g=x.createRadialGradient(32,32,2,32,32,32);g.addColorStop(0,'rgba(255,90,70,.7)');g.addColorStop(.5,'rgba(190,50,70,.25)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,64,64)}
+const pool=new THREE.Mesh(new THREE.PlaneGeometry(3.6,3.6),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(pc),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));pool.userData.ns=1;pool.rotation.x=-Math.PI/2;pool.position.y=.04;group.add(pool);
 const enemies=[];
 function makeEnemy(x,z){
  const e=new THREE.Group();scene.add(e);e.position.set(x,0,z);
@@ -396,7 +406,7 @@ const fxMats={
 function addFX(obj,update,duration){scene.add(obj);worldFX.push({obj,update,age:0,duration});}
 function nearestEnemy(){
  let best=null,dist=Infinity;
- for(const e of enemies){if(!e.alive)continue;const d=Math.hypot(e.mesh.position.x-group.position.x,e.mesh.position.z-group.position.z);if(d<dist){dist=d;best=e}}
+ for(const e of enemies){if(!e.alive||show)continue;const d=Math.hypot(e.mesh.position.x-group.position.x,e.mesh.position.z-group.position.z);if(d<dist){dist=d;best=e}}
  return best;
 }
 function killEnemy(e){e.alive=false;const p=e.mesh.position.clone();scene.remove(e.mesh);
@@ -536,6 +546,21 @@ function makeSummon(kind,x,z){
  });
 }
 
+function summonFX(x,z,R=1){
+ const g=new THREE.Group();g.position.set(x,.05,z);
+ const mk=c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.95,side:THREE.DoubleSide});
+ const r1=new THREE.Mesh(new THREE.TorusGeometry(R,.04,6,48),mk(0xff3a3a)),r2=new THREE.Mesh(new THREE.TorusGeometry(R*.62,.03,6,40),mk(0xc88aff));
+ r1.rotation.x=r2.rotation.x=Math.PI/2;g.add(r1,r2);
+ const star=new THREE.Mesh(new THREE.RingGeometry(R*.3,R*.36,5),mk(0xff7a5a));star.rotation.x=-Math.PI/2;g.add(star);
+ const beam=new THREE.Mesh(new THREE.CylinderGeometry(R*.35,R*.5,6,12,1,true),mk(0xb070ff));beam.position.y=3;g.add(beam);
+ const sp=[];for(let i=0;i<14;i++){const m=new THREE.Mesh(new THREE.TetrahedronGeometry(.07+Math.random()*.06),mk(i%2?0xffd0a0:0xc88aff));const a=Math.random()*6.28,rr=Math.random()*R*.9;m.position.set(Math.cos(a)*rr,0,Math.sin(a)*rr);m.userData.v=.9+Math.random()*2.2;g.add(m);sp.push(m)}
+ addFX(g,(o,p)=>{const e=Math.min(1,p*3),f=1-Math.max(0,(p-.55)/.45);
+  r1.scale.setScalar(.2+e*.8);r1.material.opacity=f;r2.scale.setScalar(.2+e*.8);r2.rotation.z=p*-6;r2.material.opacity=f;star.rotation.z=p*5;star.material.opacity=f;
+  beam.scale.set(1+p*.3,1,1+p*.3);beam.material.opacity=.6*Math.pow(1-p,1.5);
+  sp.forEach(m=>{m.position.y=p*m.userData.v*2.2;m.rotation.x+=.2;m.material.opacity=f})},1.25);
+ const fl=new THREE.PointLight(0xb070ff,8,8);fl.position.set(x,1.2,z);scene.add(fl);addFX(fl,(o,p)=>{o.intensity=8*Math.pow(1-p,2)},.7);
+ const sh=new THREE.Mesh(new THREE.TorusGeometry(1,.06,6,48),mk(0xffd0a0));sh.rotation.x=Math.PI/2;sh.position.set(x,.1,z);addFX(sh,(o,p)=>{o.scale.setScalar(.3+p*R*2.6);o.material.opacity=1-p},.6);
+}
 function summonSkill(kind){
  const costs={warrior:12,archer:15,golem:32,army:45};
  const cost=costs[kind];if(mana<cost){const label=document.querySelector('#manaText');label.textContent='NOT ENOUGH MANA';setTimeout(()=>label.textContent=mana+' / 100',900);return}
@@ -544,8 +569,8 @@ function summonSkill(kind){
  if(living+needed>16){const label=document.querySelector('#summonText');label.textContent='SUMMON LIMIT 16';setTimeout(updateSummonText,1000);return}
  mana-=cost;document.querySelector('#manaText').textContent=mana+' / 100';
  if(kind==="army"){
-  for(let i=0;i<4;i++){const a=i*Math.PI/2;makeSummon("army",group.position.x+Math.cos(a)*1.25,group.position.z+Math.sin(a)*1.25)}
- }else makeSummon(kind,group.position.x+(Math.random()-.5)*1.1,group.position.z+(Math.random()-.5)*1.1);
+  for(let i=0;i<4;i++){const a=i*Math.PI/2,ux=group.position.x+Math.cos(a)*1.25,uz=group.position.z+Math.sin(a)*1.25;makeSummon("army",ux,uz);summonFX(ux,uz,.8)}summonFX(group.position.x,group.position.z,2.6);shake=Math.max(shake,.4)
+ }else{const sx=group.position.x+(Math.random()-.5)*1.1,sz=group.position.z+(Math.random()-.5)*1.1;makeSummon(kind,sx,sz);summonFX(sx,sz,kind==="golem"?1.8:1.1);shake=Math.max(shake,kind==="golem"?.3:.12)}
  updateSummonText();
  triggerAction("summon");
 }
@@ -581,7 +606,7 @@ function updateSummons(dt,t){
    const dx=group.position.x-p.x,dz=group.position.z-p.z,d=Math.hypot(dx,dz);
    if(d>2.1){p.x+=dx/d*s.speed*.75*dt;p.z+=dz/d*s.speed*.75*dt}
   }
-  s.mesh.position.y=.025*Math.sin(t*2.8+s.phase);
+  s.rise=Math.min(1,(s.rise||0)+dt/.9);{const ez=1-Math.pow(1-s.rise,3);s.mesh.scale.set(.6+.4*ez,Math.max(.02,ez),.6+.4*ez)}s.mesh.position.y=.025*Math.sin(t*2.8+s.phase);
   const gait=Math.sin(t*(s.kind==="golem"?4.2:7.5)+s.phase);
   if(s.limbs){
    [-1,1].forEach(side=>{
@@ -959,12 +984,12 @@ function renderASCII(){
      const index=Math.min(ramp.length-1,Math.floor(lum*(ramp.length-1)));
      if(index>0){
        if(inPlayer){
-         const lift=curMap==='cat'?1.08:.92;
+         const lift=curMap==='cat'?1.3:1.05;
          r=Math.min(255,((r-112)*1.12+112)*lift);
          g=Math.min(255,((g-112)*1.12+112)*lift);
          b=Math.min(255,((b-112)*1.12+112)*lift);
        }else{
-         r=Math.min(255,r*.88+5);g=Math.min(255,g*.88+5);b=Math.min(255,b*.94+8);
+         r=Math.min(255,r*.7+3);g=Math.min(255,g*.7+3);b=Math.min(255,b*.76+5);
        }
        ctx.fillStyle=`rgb(${r|0},${g|0},${b|0})`;
        // Only the brightest magical pixels get a tiny halo; no full-frame bloom.
@@ -1029,7 +1054,7 @@ let prev=0;function loop(ms){
  let dz=(keys.w||keys.arrowup?-1:0)+(keys.s||keys.arrowdown?1:0)+move.z;
  {const c=Math.cos(yaw),s_=Math.sin(yaw),rx_=dx*c+dz*s_,rz_=-dx*s_+dz*c;dx=rx_;dz=rz_}
  if(destination){const vx=destination.x-group.position.x,vz=destination.z-group.position.z,len=Math.hypot(vx,vz);if(len<.18)destination=null;else{dx+=vx/len;dz+=vz/len}}
- const mag=Math.hypot(dx,dz);if(mag>1){dx/=mag;dz/=mag}
+ let mag=Math.hypot(dx,dz);if(show){dx=0;dz=0;mag=0;destination=null}if(mag>1){dx/=mag;dz/=mag}
  const moving=mag>.05;
  if(moving){group.position.x=Math.max(-lim,Math.min(lim,group.position.x+dx*speed*dt));group.position.z=Math.max(-lim,Math.min(lim,group.position.z+dz*speed*dt));baseYaw=Math.atan2(dx,dz);group.rotation.y=baseYaw;}
  const walk=moving,elapsed=t-actionState.started;
@@ -1059,11 +1084,12 @@ let prev=0;function loop(ms){
  meadowTick(t,dt);banners.forEach((b,i)=>b.rotation.z=Math.sin(t*1.2+i)*.07);altarGems.forEach((q,i)=>{q.rotation.y=t*(1+i*.3);q.position.y+=Math.sin(t*2+i)*.0015});
   bats.forEach(b=>{const a=t*b.sp+b.ph;b.g.position.set(Math.cos(a)*b.r,b.h+Math.sin(a*2)*.4,Math.sin(a)*b.r);b.g.rotation.y=-a;const f=.3+Math.sin(t*16+b.ph)*.7;b.w1.rotation.z=f;b.w2.rotation.z=-f})}
  // Enemies wander slightly and face the player.
- enemies.forEach(e=>{if(!e.alive)return;const dxp=group.position.x-e.mesh.position.x,dzp=group.position.z-e.mesh.position.z,dist=Math.hypot(dxp,dzp);e.mesh.rotation.y=Math.atan2(dxp,dzp);if(dist<1.25&&Math.random()<.003){hp=Math.max(0,hp-2);document.querySelector('#hpText').textContent=hp+' / 100'}});
+ enemies.forEach(e=>{if(!e.alive||show)return;const dxp=group.position.x-e.mesh.position.x,dzp=group.position.z-e.mesh.position.z,dist=Math.hypot(dxp,dzp);e.mesh.rotation.y=Math.atan2(dxp,dzp);if(dist<1.25&&Math.random()<.003){hp=Math.max(0,hp-2);document.querySelector('#hpText').textContent=hp+' / 100'}});
  cameraTarget.set(group.position.x,0,group.position.z);
- const camOffset=new THREE.Vector3(9,12*elev,9).applyAxisAngle(new THREE.Vector3(0,1,0),yaw).multiplyScalar(1/zoom);
+ if(show)yaw+=dt*.7;const camOffset=new THREE.Vector3(9,12*elev,9).applyAxisAngle(new THREE.Vector3(0,1,0),yaw).multiplyScalar(1/zoom);
  camera.position.copy(cameraTarget).add(camOffset);if(shake>.002){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake;shake*=.88}
- camera.lookAt(group.position.x,0.9,group.position.z);
+ camera.lookAt(group.position.x,show?1.5:.9,group.position.z);
+ {const vx=group.position.x-camera.position.x,vz=group.position.z-camera.position.z,l=Math.hypot(vx,vz)||1;rimPt.position.set(group.position.x+vx/l*2.6,2.6,group.position.z+vz/l*2.6);frontPt.position.set(group.position.x-vx/l*2.8,1.8,group.position.z-vz/l*2.8)}
  // Advance all independent spell effects in world space.
  for(let i=worldFX.length-1;i>=0;i--){
   const fx=worldFX[i];fx.age+=dt;const p=Math.min(1,fx.age/fx.duration);
