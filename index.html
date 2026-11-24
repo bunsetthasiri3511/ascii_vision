@@ -27,11 +27,12 @@ main{min-width:0;width:100%}
  .bar.actions>button[data-skill],.bar.actions>.info:not(#summonText){display:none}
  .bar.actions button{padding:7px 10px;font-size:11px}
 }
+.orb{display:none!important}.hud{justify-content:center}
 </style></head><body><main>
 <header><h1>NECROMANCER <span style="color:#a58abf">/ ISOMETRIC ASCII</span></h1><span class="sub">ISOMETRIC ASCII ACTION RPG · METEOR SPELLS</span></header>
 <div class="hud"><div class="orb hp"><b>HP</b><span id="hpText">100 / 100</span></div><div class="level">NECROMANCER · LEVEL 12<br><small>THE FORGOTTEN CATACOMBS</small></div><div class="orb mana"><b>MANA</b><span id="manaText">100 / 100</span></div></div>
-<div class="stage"><div id="errorBox" style="display:none;position:absolute;z-index:5;inset:12px auto auto 12px;max-width:calc(100% - 24px);padding:10px 12px;border:1px solid #a65b67;border-radius:8px;background:#1c1018;color:#ffd7df;font:12px ui-monospace,monospace;white-space:pre-wrap"></div><canvas id="view"></canvas><span class="hint">WASD / ARROWS TO MOVE · CLICK GROUND TO WALK</span><div class="mobilePad"><div class="dpad"><button data-dir="up">▲</button><div><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div></div><div class="skillpad"><button data-skill="cast">✦<small>SOUL BOLT</small></button><button data-skill="nova">✹<small>SOUL NOVA</small></button><button data-skill="storm">☄<small>METEOR</small></button><button data-skill="warrior">♟<small>WARRIOR</small></button><button data-skill="archer">➶<small>ARCHER</small></button><button data-skill="golem">♜<small>GOLEM</small></button><button data-skill="army">☠<small>ARMY</small></button></div></div></div>
-<div class="bar actions"><button id="reset">↺ RESET POSITION</button><span class="info">SKILLS · ALL UNLOCKED</span><button data-skill="cast">✦ SOUL BOLT [1]</button><button data-skill="nova">✹ SOUL NOVA [2]</button><button data-skill="storm">☄ METEOR [3]</button><button data-skill="warrior">♟ SKELETON [4]</button><button data-skill="archer">➶ ARCHER [5]</button><button data-skill="golem">♜ BONE GOLEM [6]</button><button data-skill="army">☠ UNDEAD ARMY [7]</button><span id="summonText" class="info">SUMMONS 0 / 8</span></div>
+<div class="stage"><div id="errorBox" style="display:none;position:absolute;z-index:5;inset:12px auto auto 12px;max-width:calc(100% - 24px);padding:10px 12px;border:1px solid #a65b67;border-radius:8px;background:#1c1018;color:#ffd7df;font:12px ui-monospace,monospace;white-space:pre-wrap"></div><canvas id="view"></canvas><span class="hint">WASD / ARROWS TO MOVE · CLICK TO WALK · DRAG TO ROTATE</span><div class="mobilePad"><div class="dpad"><button data-dir="up">▲</button><div><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div></div><div class="skillpad"><button data-skill="cast">✦<small>SOUL BOLT</small></button><button data-skill="nova">✹<small>SOUL NOVA</small></button><button data-skill="storm">☄<small>METEOR</small></button><button data-skill="warrior">♟<small>WARRIOR</small></button><button data-skill="archer">➶<small>ARCHER</small></button><button data-skill="golem">♜<small>GOLEM</small></button><button data-skill="army">☠<small>ARMY</small></button></div></div></div>
+<div class="bar actions"><button id="reset">↺ RESET POSITION</button><button data-map="cat" class="active">☠ CATACOMBS</button><button data-map="meadow">🌿 MEADOW</button><button id="zin" aria-label="ซูมเข้า">＋</button><button id="zout" aria-label="ซูมออก">－</button><span class="info">SKILLS · ALL UNLOCKED</span><button data-skill="cast">✦ SOUL BOLT [1]</button><button data-skill="nova">✹ SOUL NOVA [2]</button><button data-skill="storm">☄ METEOR [3]</button><button data-skill="warrior">♟ SKELETON [4]</button><button data-skill="archer">➶ ARCHER [5]</button><button data-skill="golem">♜ BONE GOLEM [6]</button><button data-skill="army">☠ UNDEAD ARMY [7]</button><span id="summonText" class="info">SUMMONS 0 / 8</span></div>
 </main>
 <script type="module">
 const errorBox=document.querySelector('#errorBox');
@@ -48,7 +49,7 @@ const canvas=document.querySelector('#view'), stage=document.querySelector('.sta
 const renderCanvas=document.createElement('canvas');
 const renderer=new THREE.WebGLRenderer({canvas:renderCanvas,alpha:false,antialias:true,preserveDrawingBuffer:true});
 renderer.setPixelRatio(1);renderer.setClearColor(0x08070d,1);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(34,1,.1,100);
+const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(34,1,.1,220);
 camera.position.set(5.4,3.5,7.5);
 const target=new THREE.Vector3(0,1.65,0);
 scene.add(new THREE.HemisphereLight(0xd9d0e9,0x17121d,2.35));
@@ -76,11 +77,12 @@ add(new THREE.CylinderGeometry(.49,.82,.9,12,1),cloth2,[0,.55,0]);
 add(new THREE.TorusGeometry(.39,.065,8,16),leather,[0,.94,0],[1,1,1],[Math.PI/2,0,0]);
 ball(iron,[0,.94,.02],[.13,.14,.1]);ball(bone,[0,.94,.11],[.075,.09,.045]);
 for(let i=0;i<9;i++){let a=i*Math.PI*2/9,x=Math.sin(a),z=Math.cos(a);let t=add(new THREE.ConeGeometry(.16,.55,5),i%2?cloth:cloth2,[x*.49,.2,z*.49],[1,1,1],[Math.PI,0,a]);}
+const legs={};
 // Legs and boots visible under split robe
 for(let s of [-1,1]){
- link([s*.2,.68,0],[s*.24,.24,.12],.115,black);
- add(new THREE.BoxGeometry(.22,.16,.4),leather,[s*.24,.12,.22]);
- link([s*.22,.28,.1],[s*.3,.08,.32],.06,bone);
+ const LG=(legs[s]=new THREE.Group());LG.position.set(0,.68,0);group.add(LG);link([s*.2,0,0],[s*.24,-.44,.12],.115,black,LG);
+ add(new THREE.BoxGeometry(.22,.16,.4),leather,[s*.24,-.56,.22],[1,1,1],[0,0,0],legs[s]);
+ link([s*.22,-.4,.1],[s*.3,-.6,.32],.06,bone,legs[s]);
 }
 // Shoulders, upper arms, forearms and skeletal fingers
 for(let s of [-1,1]){
@@ -300,6 +302,11 @@ for(let k=0;k<5;k++){
   add(new THREE.OctahedronGeometry(.045,0),royalGlow,[0,y,.43],[.65,1.5,.35]);
 }
 
+// Arms get shoulder pivots so they can swing and cast
+const arms={};
+for(const s of [-1,1]){const P=new THREE.Group();P.position.set(s*.5,1.8,0);group.add(P);arms[s]=P}
+for(const m of [...group.children]){if(!m.isMesh)continue;const px=m.position.x,py=m.position.y;if(Math.abs(px)>.52&&py>1&&py<1.8){const P=arms[px<0?-1:1];P.add(m);m.position.sub(P.position)}}
+const blob=new THREE.Mesh(new THREE.CircleGeometry(.95,24),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.5,depthWrite:false}));blob.rotation.x=-Math.PI/2;blob.position.y=.02;group.add(blob);
 // Ground sigil and subtle floating embers.
 const sigil=new THREE.Group();group.add(sigil);sigil.position.set(0,.035,0);
 const sigilMat=new THREE.MeshBasicMaterial({color:0x79569b,transparent:true,opacity:.34});
@@ -314,6 +321,7 @@ for(let i=0;i<12;i++){
 
 
 
+const catStart=scene.children.length;
 // === ISOMETRIC CATACOMB WORLD ===
 scene.background=new THREE.Color(0x080910);
 const floorMat=M(0x28232b,1,0), stoneMat=M(0x514653,.95), darkStone=M(0x211d28,1), mossMat=M(0x343c32,1), torchMat=new THREE.MeshBasicMaterial({color:0xff9a45});
@@ -475,6 +483,61 @@ for(let i=0;i<24;i++){
     }
   }
 }
+// Showcase set dressing: arches, banners, altar, bats
+const banners=[],bats=[],altarGems=[];
+function arch(x,z,rot){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);
+ for(const s of [-1,1]){const p=new THREE.Mesh(new THREE.BoxGeometry(.7,3.2,.7),stoneMat);p.position.set(s*1.9,1.5,0);g.add(p);const c=new THREE.Mesh(new THREE.BoxGeometry(.95,.2,.95),paleStone);c.position.set(s*1.9,3.15,0);g.add(c);
+  const bp=new THREE.Group();bp.position.set(s*1.25,3,.45);g.add(bp);const bn=new THREE.Mesh(new THREE.BoxGeometry(.55,1.3,.03),M(0x4a1a2e));bn.position.y=-.65;bp.add(bn);banners.push(bp)}
+ const l=new THREE.Mesh(new THREE.BoxGeometry(4.7,.5,.8),darkStone);l.position.y=3.45;g.add(l);
+ const k=new THREE.Mesh(new THREE.OctahedronGeometry(.2,0),royalGlow);k.position.set(0,2.95,.1);k.scale.y=1.5;g.add(k);altarGems.push(k)}
+arch(0,-13.4,0);arch(-13.4,0,Math.PI/2);arch(13.4,0,Math.PI/2);
+{const a=new THREE.Group();a.position.set(0,0,-11.2);scene.add(a);for(let i=0;i<3;i++){const st=new THREE.Mesh(new THREE.BoxGeometry(2.6-i*.7,.3,1.7-i*.45),i%2?paleStone:darkStone);st.position.y=.07+i*.3;a.add(st)}const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.3,0),royalGlow);gem.position.y=1.5;gem.scale.y=1.5;a.add(gem);altarGems.push(gem)}
+for(let i=0;i<6;i++){const g=new THREE.Group();const wm=new THREE.MeshBasicMaterial({color:0x07060a,side:THREE.DoubleSide});const wg=new THREE.PlaneGeometry(.3,.14);wg.translate(.15,0,0);const w1=new THREE.Mesh(wg,wm),w2=new THREE.Mesh(wg,wm);w2.scale.x=-1;g.add(w1,w2);scene.add(g);bats.push({g,w1,w2,r:3+Math.random()*7,sp:.25+Math.random()*.3,ph:Math.random()*6,h:3+Math.random()*1.8})}
+const catObjs=scene.children.slice(catStart);
+// === MEADOW MAP: grass, stream, trees, wind ===
+const meadow=new THREE.Group();meadow.visible=false;scene.add(meadow);
+const SF=x=>Math.sin(x*.22)*2.5-5;const gu={uTime:{value:0}};const sway=[];let curMap='cat';
+{const g=new THREE.Mesh(new THREE.PlaneGeometry(70,70),M(0x4b7a3a,1));g.rotation.x=-Math.PI/2;g.position.y=-.1;meadow.add(g);
+ for(let i=0;i<26;i++){const p=new THREE.Mesh(new THREE.CircleGeometry(1.5+Math.random()*3,10),new THREE.MeshBasicMaterial({color:i%2?0x5d8a3f:0x3b6232,transparent:true,opacity:.55}));p.rotation.x=-Math.PI/2;p.position.set((Math.random()-.5)*56,-.095+i*.0003,(Math.random()-.5)*56);meadow.add(p)}}
+const cv=document.createElement('canvas');cv.width=256;cv.height=64;const cx=cv.getContext('2d');cx.fillStyle='#3a86c4';cx.fillRect(0,0,256,64);
+for(let i=0;i<46;i++){cx.strokeStyle=`rgba(${190+Math.random()*60|0},235,255,${.18+Math.random()*.4})`;cx.lineWidth=1+Math.random()*2;const y=Math.random()*64,x=Math.random()*256,l=14+Math.random()*50;cx.beginPath();cx.moveTo(x,y);cx.bezierCurveTo(x+l*.3,y-3,x+l*.6,y+3,x+l,y);cx.stroke()}
+const waterTex=new THREE.CanvasTexture(cv);waterTex.wrapS=waterTex.wrapT=THREE.RepeatWrapping;waterTex.repeat.set(16,1);waterTex.colorSpace=THREE.SRGBColorSpace;
+{const N=90,W=2.3,pos=[],uv=[],idx=[];for(let i=0;i<=N;i++){const x=-30+60*i/N,z=SF(x);pos.push(x,-.04,z-W/2,x,-.04,z+W/2);uv.push(i/N,0,i/N,1);if(i<N){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(idx);geo.computeVertexNormals();
+ const water=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:waterTex,color:0xaad8ff,roughness:.15,metalness:.2,emissive:0x0d3150,emissiveIntensity:.8,side:THREE.DoubleSide}));water.userData.ns=1;meadow.add(water);
+ for(let k=0;k<70;k++){const x=-29+k*.85,sd=k%2?1:-1;const r=new THREE.Mesh(new THREE.DodecahedronGeometry(.14+Math.random()*.2,0),M(0x77746f,1));r.position.set(x,.02,SF(x)+sd*(1.3+Math.random()*.4));r.rotation.set(Math.random()*3,Math.random()*3,0);meadow.add(r)}
+ const wood=M(0x6b4a2f,1);for(let i=0;i<9;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(.18,.09,3.7),wood);p.position.set(6.3+i*.21,.12,-2.5);meadow.add(p)}
+ for(const sz of [-1.75,1.75]){const rl=new THREE.Mesh(new THREE.BoxGeometry(1.9,.08,.08),wood);rl.position.set(7.14,.62,-2.5+sz);meadow.add(rl);for(const px of [6.25,8.03]){const po=new THREE.Mesh(new THREE.BoxGeometry(.1,.7,.1),wood);po.position.set(px,.3,-2.5+sz);meadow.add(po)}}}
+{const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute([-.06,0,0,.06,0,0,0,1,0],3));bg.setAttribute('color',new THREE.Float32BufferAttribute([.25,.4,.15,.25,.4,.15,.85,1,.5],3));bg.setAttribute('normal',new THREE.Float32BufferAttribute([0,0,1,0,0,1,0,0,1],3));
+ const gm=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+ gm.onBeforeCompile=sh=>{sh.uniforms.uTime=gu.uTime;sh.vertexShader='uniform float uTime;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 ip=vec3(instanceMatrix[3][0],0.,instanceMatrix[3][2]);float wv=sin(uTime*1.7+ip.x*.32+ip.z*.21)*.55+sin(uTime*3.3+ip.x*.9)*.18;transformed.x+=wv*position.y*position.y*.9;transformed.z+=wv*position.y*position.y*.35;')};
+ const G=4500,gr=new THREE.InstancedMesh(bg,gm,G),d=new THREE.Object3D(),col=new THREE.Color();let n=0;
+ while(n<G){const x=(Math.random()-.5)*52,z=(Math.random()-.5)*52;if(Math.abs(z-SF(x))<1.5)continue;d.position.set(x,-.09,z);d.rotation.set(0,Math.random()*6.28,0);d.scale.set(1.2+Math.random(),.4+Math.random()*.7,1);d.updateMatrix();gr.setMatrixAt(n,d.matrix);col.setHSL(.22+Math.random()*.1,.55,.45+Math.random()*.2);gr.setColorAt(n,col);n++}
+ gr.userData.ns=1;gr.frustumCulled=false;meadow.add(gr);
+ const fl=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.07,0),new THREE.MeshLambertMaterial(),200);
+ for(let i=0;i<200;i++){let x,z;do{x=(Math.random()-.5)*50;z=(Math.random()-.5)*50}while(Math.abs(z-SF(x))<1.6);d.position.set(x,.3+Math.random()*.2,z);d.rotation.set(0,0,0);d.scale.setScalar(1);d.updateMatrix();fl.setMatrixAt(i,d.matrix);col.setHex([0xffd75a,0xff8fb8,0xffffff,0xb9a0ff][i%4]);fl.setColorAt(i,col)}
+ fl.userData.ns=1;meadow.add(fl)}
+function tree(x,z,s,pine){const g=new THREE.Group();g.position.set(x,-.1,z);g.scale.setScalar(s);meadow.add(g);
+ const tr=new THREE.Mesh(new THREE.CylinderGeometry(.14,.24,pine?1.6:1.9,7),M(0x5a3d28));tr.position.y=pine?.8:.95;g.add(tr);
+ const f=new THREE.Group();f.position.y=pine?1.2:1.7;g.add(f);const cl=[0x3f7d3a,0x4e8f3f,0x356b35];
+ if(pine){for(let i=0;i<4;i++){const c=new THREE.Mesh(new THREE.ConeGeometry(1.15-i*.22,1.1,8),M(cl[i%3]));c.position.y=i*.6;f.add(c)}}
+ else{for(let i=0;i<5;i++){const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.9+Math.random()*.4,1),M(cl[i%3]));b.position.set((Math.random()-.5)*1.5,.4+Math.random()*1.0,(Math.random()-.5)*1.5);f.add(b)}}
+ sway.push({g:f,ph:Math.random()*6,k:pine?.6:1})}
+for(let i=0;i<16;i++){const a=i*2.4+.5,r=7+((i*37)%15),x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(z-SF(x))<2.8||Math.abs(x)>25||Math.abs(z)>25)continue;tree(x,z,.9+(i%4)*.2,i%3===0)}
+const pN=140,pollenGeo=new THREE.BufferGeometry(),pp=new Float32Array(pN*3),pSeed=[];for(let i=0;i<pN;i++){pp[i*3]=(Math.random()-.5)*50;pp[i*3+1]=.3+Math.random()*3.5;pp[i*3+2]=(Math.random()-.5)*50;pSeed.push(Math.random()*6)}
+pollenGeo.setAttribute('position',new THREE.BufferAttribute(pp,3));meadow.add(new THREE.Points(pollenGeo,new THREE.PointsMaterial({color:0xfff2a8,size:.06,transparent:true,opacity:.8,depthWrite:false})));
+function meadowTick(t,dt){if(!meadow.visible)return;gu.uTime.value=t;waterTex.offset.x-=dt*.14;
+ sway.forEach(s=>{s.g.rotation.z=Math.sin(t*1.5+s.ph)*.045*s.k;s.g.rotation.x=Math.cos(t*1.2+s.ph)*.03*s.k});
+ for(let i=0;i<pN;i++){const j=i*3;pp[j]+=dt*(.9+Math.sin(t+pSeed[i])*.4);pp[j+1]+=Math.sin(t*1.3+pSeed[i])*dt*.25;pp[j+2]+=dt*.3;if(pp[j]>26)pp[j]=-26;if(pp[j+2]>26)pp[j+2]=-26}
+ pollenGeo.attributes.position.needsUpdate=true}
+function setMap(n){const cat=n==='cat';curMap=n;catObjs.forEach(o=>{o.visible=cat});meadow.visible=!cat;lim=cat?14:24;
+ scene.background.setHex(cat?0x080910:0x2c3f55);scene.fog.color.setHex(cat?0x100d18:0x2c3f55);scene.fog.density=(cat?.0105:.006)*Math.min(1,zoom*1.1);
+ const hm=scene.children.find(o=>o.isHemisphereLight);hm.color.setHex(cat?0xd9d0e9:0xbfd8ff);hm.groundColor.setHex(cat?0x17121d:0x4a5a30);
+ key.color.setHex(cat?0xffe8cf:0xffc98c);fill.color.setHex(cat?0x9270bd:0x6a9fd8);fill.intensity=cat?2.15:1.2;
+ group.position.set(0,0,0);destination=null;
+ document.querySelectorAll('[data-map]').forEach(b=>b.classList.toggle('active',b.dataset.map===n));
+ document.querySelector('.level small').textContent=cat?'THE FORGOTTEN CATACOMBS':'THE WINDSWEPT MEADOW'}
+document.querySelectorAll('[data-map]').forEach(b=>b.addEventListener('click',()=>setMap(b.dataset.map)));
 const enemies=[];
 function makeEnemy(x,z){
  const e=new THREE.Group();scene.add(e);e.position.set(x,0,z);
@@ -490,7 +553,7 @@ function makeEnemy(x,z){
 // === WORLD-SPACE SPELL VFX ===
 // These effects are independent of the character model, so they remain visible
 // in the isometric ASCII view and travel through the world.
-const worldFX=[];
+const worldFX=[];let shake=0;const spellLight=new THREE.PointLight(0xffffff,0,9);scene.add(spellLight);
 const fxMats={
  purple:new THREE.MeshBasicMaterial({color:0xd38aff,transparent:true,opacity:.95}),
  cyan:new THREE.MeshBasicMaterial({color:0x82eaff,transparent:true,opacity:.95}),
@@ -504,8 +567,11 @@ function nearestEnemy(){
  for(const e of enemies){if(!e.alive)continue;const d=Math.hypot(e.mesh.position.x-group.position.x,e.mesh.position.z-group.position.z);if(d<dist){dist=d;best=e}}
  return best;
 }
+function killEnemy(e){e.alive=false;const p=e.mesh.position.clone();scene.remove(e.mesh);
+ for(let i=0;i<9;i++){const m=new THREE.Mesh(new THREE.CylinderGeometry(.03,.04,.3,5),new THREE.MeshBasicMaterial({color:0xcfc6b0,transparent:true}));m.position.set(p.x,1,p.z);const v=new THREE.Vector3((Math.random()-.5)*.12,.08+Math.random()*.1,(Math.random()-.5)*.12);addFX(m,(o,q)=>{o.position.add(v);v.y-=.006;o.rotation.x+=.3;o.material.opacity=1-q},.9)}
+ setTimeout(()=>{e.hp=3;e.alive=true;scene.add(e.mesh)},4500)}
 function hurtEnemies(x,z,r,damage=3){
- for(const e of enemies){if(!e.alive)continue;const d=Math.hypot(e.mesh.position.x-x,e.mesh.position.z-z);if(d<=r){e.hp-=damage;if(e.hp<=0){e.alive=false;scene.remove(e.mesh)}}}
+ for(const e of enemies){if(!e.alive)continue;const d=Math.hypot(e.mesh.position.x-x,e.mesh.position.z-z);if(d<=r){e.hp-=damage;if(e.hp<=0)killEnemy(e);}}
 }
 
 // === SUMMONING SKILL LINE — ALL FOUR SKILLS UNLOCKED FOR PROTOTYPING ===
@@ -620,6 +686,14 @@ function makeSummon(kind,x,z){
   }
  }
 
+ // extra detail: soul flame, tattered cloth, helm or hood, spikes, horns, runes
+ add(new THREE.IcosahedronGeometry(.07,1),summonMaterials.eye,[0,1.12,.05]);
+ for(let i=0;i<5;i++)add(new THREE.BoxGeometry(.09,.34+(i%2)*.12,.02),summonMaterials.cloth,[-.16+i*.08,.5,.12],[.08,0,(i-2)*.07]);
+ add(new THREE.BoxGeometry(.5,.07,.1),dark,[0,.74,.04]);
+ if(isArcher){add(new THREE.ConeGeometry(.29,.52,8),summonMaterials.cloth,[0,headY+.2,-.03]);add(new THREE.BoxGeometry(.52,.85,.03),summonMaterials.cloth,[0,1.02,-.2],[.12,0,0]);}
+ else{const hm=add(new THREE.SphereGeometry(.26,12,7,0,Math.PI*2,0,Math.PI*.4),iron,[0,headY+.03,0]);hm.scale.set(1,.95,.92);add(new THREE.BoxGeometry(.035,.17,.05),iron,[0,headY-.07,.23]);add(new THREE.BoxGeometry(.04,.14,.32),violet,[0,headY+.27,0]);
+  for(const sd of [-1,1])add(new THREE.ConeGeometry(.05,.17,5),iron,[sd*.37,1.47,0],[0,0,-sd*.55]);}
+ if(isGolem){for(const sd of [-1,1])add(new THREE.ConeGeometry(.06,.3,6),bone,[sd*.2,headY+.3,0],[0,0,-sd*.4]);for(let i=0;i<4;i++)add(new THREE.OctahedronGeometry(.035,0),violet,[0,1.08+i*.1,.2]);}
  const aura=new THREE.Mesh(new THREE.RingGeometry(isGolem?.68:.36,isGolem?.86:.47,20),new THREE.MeshBasicMaterial({color:isGolem?0x9d72d2:0x9a83c5,transparent:true,opacity:.52,side:THREE.DoubleSide}));
  aura.rotation.x=-Math.PI/2;aura.position.y=.035;unit.add(aura);
  summons.push({
@@ -635,7 +709,7 @@ function summonSkill(kind){
  const cost=costs[kind];if(mana<cost){const label=document.querySelector('#manaText');label.textContent='NOT ENOUGH MANA';setTimeout(()=>label.textContent=mana+' / 100',900);return}
  const living=summons.length;
  const needed=kind==="army"?4:1;
- if(living+needed>8){const label=document.querySelector('#summonText');label.textContent='SUMMON LIMIT 8';setTimeout(updateSummonText,1000);return}
+ if(living+needed>16){const label=document.querySelector('#summonText');label.textContent='SUMMON LIMIT 16';setTimeout(updateSummonText,1000);return}
  mana-=cost;document.querySelector('#manaText').textContent=mana+' / 100';
  if(kind==="army"){
   for(let i=0;i<4;i++){const a=i*Math.PI/2;makeSummon("army",group.position.x+Math.cos(a)*1.25,group.position.z+Math.sin(a)*1.25)}
@@ -646,7 +720,7 @@ function summonSkill(kind){
 function updateSummonText(){
  const n=summons.length;
  const el=document.querySelector('#summonText');
- if(el)el.textContent=`SUMMONS ${n} / 8`;
+ if(el)el.textContent=`SUMMONS ${n} / 16`;
 }
 function updateSummons(dt,t){
  for(let i=summons.length-1;i>=0;i--){
@@ -662,7 +736,7 @@ function updateSummons(dt,t){
    s.attackCD-=dt;
    if(dist<=s.range+.25&&s.attackCD<=0){
     target.hp-=s.damage;
-    if(target.hp<=0){target.alive=false;scene.remove(target.mesh)}
+    if(target.hp<=0)killEnemy(target);
     s.attackCD=s.kind==="golem"?1.15:s.kind==="archer"?.82:.95;
     if(s.kind==="archer"||s.kind==="army"&&i%2===1){
      const shot=new THREE.Mesh(new THREE.OctahedronGeometry(.09),fxMats.cyan);
@@ -695,7 +769,7 @@ function spawnSoulBolt(){
  const end=start.clone().add(dir.clone().multiplyScalar(foe?Math.min(9,Math.hypot(foe.mesh.position.x-group.position.x,foe.mesh.position.z-group.position.z)):7));
  const orb=new THREE.Group();
  const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.19,1),fxMats.cyan);orb.add(core);
- const halo=new THREE.Mesh(new THREE.SphereGeometry(.31,10,8),fxMats.purple);halo.scale.set(1,.7,1);orb.add(halo);
+ const halo=new THREE.Mesh(new THREE.SphereGeometry(.31,10,8),fxMats.purple);halo.scale.set(1,.7,1);orb.add(halo);orb.userData.glow=0xb070ff;orb.userData.gi=3;
  const wake=[];
  for(let i=0;i<5;i++){
   const bead=new THREE.Mesh(new THREE.SphereGeometry(.10-i*.012,8,6),i%2?fxMats.purple:fxMats.cyan);
@@ -748,7 +822,7 @@ function spawnNova(){
  hurtEnemies(group.position.x,group.position.z,4.8,4);
 }
 function spawnMeteorImpact(x,z){
- // 1) Scorched crater: dark center, broken glowing rim and branching cracks.
+ shake=Math.max(shake,.3);
  const impactGroup=new THREE.Group();
  impactGroup.position.set(x,0.035,z);
  const scorchMat=new THREE.MeshBasicMaterial({color:0x211522,transparent:true,opacity:.96});
@@ -839,7 +913,7 @@ function spawnMeteorImpact(x,z){
 function spawnMeteor(x,z,delay=0){
  const meteor=new THREE.Group();
  const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.34,1),fxMats.hot);meteor.add(core);
- const shell=new THREE.Mesh(new THREE.IcosahedronGeometry(.48,1),fxMats.fire);meteor.add(shell);
+ const shell=new THREE.Mesh(new THREE.IcosahedronGeometry(.48,1),fxMats.fire);meteor.add(shell);meteor.userData.glow=0xff7a30;meteor.userData.gi=10;
  for(let i=0;i<8;i++){
   const tail=new THREE.Mesh(new THREE.ConeGeometry(.10+Math.random()*.08,.62+Math.random()*.48,7),
     i%2?fxMats.fire:fxMats.hot);
@@ -948,7 +1022,7 @@ function updateAction(t,dt){
 }
 
 // Isometric camera and player movement
-let zoom=1,keys={},move={x:0,z:0},destination=null,mouseDown=false;
+let yaw=0,elev=1,dragLast=null,dragging=false,lim=14;let zoom=1,keys={},move={x:0,z:0},destination=null,mouseDown=false;
 const cameraTarget=new THREE.Vector3();
 camera.position.set(9,12,9);
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
@@ -970,12 +1044,18 @@ document.addEventListener('keydown',e=>{
  if(hotkeys[e.key])castSkill(hotkeys[e.key]);
 });
 document.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-let downPt=null;const tapOK=e=>downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)<12&&performance.now()-downPt.t<350;
-canvas.addEventListener('pointerdown',e=>{downPt={x:e.clientX,y:e.clientY,t:performance.now()};if(e.pointerType==='mouse'){mouseDown=true;canvas.setPointerCapture(e.pointerId)}});
+let downPt=null;const touches=new Map();let pinch0=0,zoom0=1;const pinchDist=()=>{const a=[...touches.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1};const setZoom=v=>{zoom=Math.max(.24,Math.min(2,v));scene.fog.density=(curMap==='cat'?.0105:.006)*Math.min(1,zoom*1.1)};const tapOK=e=>downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)<12&&performance.now()-downPt.t<350;
+canvas.addEventListener('pointerdown',e=>{downPt={x:e.clientX,y:e.clientY,t:performance.now()};if(e.pointerType==='touch'){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===2){pinch0=pinchDist();zoom0=zoom;downPt=null}}if(e.pointerType==='mouse'){mouseDown=true;canvas.setPointerCapture(e.pointerId)}});
 canvas.addEventListener('pointerup',e=>{
- if(e.pointerType==='mouse'||tapOK(e)){mouseDown=false;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));raycaster.setFromCamera(pointer,camera);if(raycaster.ray.intersectPlane(groundPlane,hitPoint))destination=new THREE.Vector3(Math.max(-14,Math.min(14,hitPoint.x)),0,Math.max(-14,Math.min(14,hitPoint.z)));}
+ if(tapOK(e)||(e.pointerType==='mouse'&&!dragging)){mouseDown=false;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));raycaster.setFromCamera(pointer,camera);if(raycaster.ray.intersectPlane(groundPlane,hitPoint))destination=new THREE.Vector3(Math.max(-lim,Math.min(lim,hitPoint.x)),0,Math.max(-lim,Math.min(lim,hitPoint.z)));}
 });
-canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.72,Math.min(1.45,zoom+e.deltaY*.001))},{passive:false});
+canvas.addEventListener('pointermove',e=>{if(e.pointerType!=='touch'||!touches.has(e.pointerId))return;touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===2){e.preventDefault();setZoom(zoom0*pinchDist()/pinch0)}});
+['pointerup','pointercancel','pointerleave'].forEach(n=>canvas.addEventListener(n,e=>{touches.delete(e.pointerId);dragLast=null}));
+canvas.addEventListener('pointerdown',e=>{dragLast={x:e.clientX,y:e.clientY};dragging=false});
+canvas.addEventListener('pointermove',e=>{if(!dragLast||touches.size>1||(e.pointerType==='mouse'&&e.buttons===0))return;if(!dragging&&downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)>12)dragging=true;if(dragging){yaw-=(e.clientX-dragLast.x)*.008;elev=Math.max(.55,Math.min(1.5,elev+(e.clientY-dragLast.y)*.004))}dragLast={x:e.clientX,y:e.clientY}});
+document.querySelector('#zin').addEventListener('click',()=>setZoom(zoom*1.25));
+document.querySelector('#zout').addEventListener('click',()=>setZoom(zoom/1.25));
+canvas.addEventListener('wheel',e=>{e.preventDefault();setZoom(zoom*(1+e.deltaY*.001))},{passive:false});
 document.querySelectorAll('[data-dir]').forEach(b=>{
  const dir=b.dataset.dir, vectors={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
  const on=e=>{e.preventDefault();move.x=vectors[dir][0];move.z=vectors[dir][1]};
@@ -995,14 +1075,14 @@ window.addEventListener('resize',resize);window.addEventListener('orientationcha
 const sample=document.createElement('canvas'),sampleCtx=sample.getContext('2d',{willReadFrequently:true});
 const asciiRamp=' .,:;!+*xX%#&@';
 const detailRamp=' .,:;!+*xX%#&@MW';
-const projected=new THREE.Vector3();
+const projected=new THREE.Vector3();const EDGE=['-',String.fromCharCode(92),'|','/'];const P=['.,:`',';!+*i=','xX%#&$','@#&%MW8'],MAGIC='*x+X#@&%';
 function projectToScreen(v,w,h){
  projected.copy(v).project(camera);
  return {x:(projected.x*.5+.5)*w,y:(-.5*projected.y+.5)*h};
 }
 function renderASCII(){
  const w=canvas.width,h=canvas.height;
- sample.width=w;sample.height=h;
+ const flick=Math.floor(performance.now()/90);sample.width=w;sample.height=h;
  sampleCtx.drawImage(renderCanvas,0,0,w,h);
  const pixels=sampleCtx.getImageData(0,0,w,h).data;
  const ctx=canvas.getContext('2d');
@@ -1053,7 +1133,11 @@ function renderASCII(){
          ctx.shadowColor=`rgba(${r|0},${g|0},${b|0},.32)`;
          ctx.shadowBlur=2;
        }else{ctx.shadowBlur=0}
-       ctx.fillText(ramp[index],x+cellW*.5,y+cellH*.5);
+       let ch=ramp[index];const mx=Math.max(r,g,b),mn=Math.min(r,g,b),magic=lum>.6&&(mx-mn)>.35*mx;
+       if(magic){ch=MAGIC[((((x*7+y*13)|0)^(flick*2654435761))>>>0)%MAGIC.length]}
+       else if(!inPlayer){const f=index/(ramp.length-1),pool=f<.25?P[0]:f<.5?P[1]:f<.75?P[2]:P[3];const hs=((Math.floor(x/bgStep)*73856093)^(Math.floor(y/bgStep)*19349663))>>>0;ch=pool[hs%pool.length]}
+       if(inPlayer&&!magic&&lum>.1){const Lm=(xx,yy)=>{const j=(Math.min(h-1,Math.max(0,yy|0))*w+Math.min(w-1,Math.max(0,xx|0)))*4;return pixels[j]*.2126+pixels[j+1]*.7152+pixels[j+2]*.0722};const gx=Lm(pxSample+cellW,pySample)-Lm(pxSample-cellW,pySample),gy=Lm(pxSample,pySample+cellH)-Lm(pxSample,pySample-cellH);if(Math.hypot(gx,gy)>40){const a=((Math.atan2(gx,-gy)%Math.PI)+Math.PI)%Math.PI;ch=EDGE[Math.round(a/(Math.PI/4))%4]}}
+       ctx.fillText(ch,x+cellW*.5,y+cellH*.5);
        ctx.shadowBlur=0;
      }
      x+=cellW;
@@ -1065,14 +1149,14 @@ function renderASCII(){
 // Enable real directional shadows for the assembled dungeon and character meshes.
 scene.traverse(obj=>{
  if(obj.isMesh){
-   obj.castShadow=true;
+   obj.castShadow=!obj.userData.ns;
    obj.receiveShadow=true;
  }
 });
 let prev=0;function loop(ms){
  requestAnimationFrame(loop);let dt=Math.min(.05,(ms-prev)/1000||0);prev=ms;const t=ms*.001;
  // Prototype mode: mana regenerates so every unlocked summon can be tested repeatedly.
- mana=Math.min(100,mana+5.5*dt);document.querySelector('#manaText').textContent=Math.floor(mana)+' / 100';
+ mana=100;document.querySelector('#manaText').textContent=Math.floor(mana)+' / 100';
  // Slow drifting ground mist; independent motion prevents a flat scrolling texture look.
  fogBanks.forEach((fog,i)=>{
   const p=fog.userData;
@@ -1104,10 +1188,11 @@ let prev=0;function loop(ms){
 
  let dx=(keys.a||keys.arrowleft?-1:0)+(keys.d||keys.arrowright?1:0)+move.x;
  let dz=(keys.w||keys.arrowup?-1:0)+(keys.s||keys.arrowdown?1:0)+move.z;
+ {const c=Math.cos(yaw),s_=Math.sin(yaw),rx_=dx*c+dz*s_,rz_=-dx*s_+dz*c;dx=rx_;dz=rz_}
  if(destination){const vx=destination.x-group.position.x,vz=destination.z-group.position.z,len=Math.hypot(vx,vz);if(len<.18)destination=null;else{dx+=vx/len;dz+=vz/len}}
  const mag=Math.hypot(dx,dz);if(mag>1){dx/=mag;dz/=mag}
  const moving=mag>.05;
- if(moving){group.position.x=Math.max(-14,Math.min(14,group.position.x+dx*speed*dt));group.position.z=Math.max(-14,Math.min(14,group.position.z+dz*speed*dt));group.rotation.y=Math.atan2(dx,dz);}
+ if(moving){group.position.x=Math.max(-lim,Math.min(lim,group.position.x+dx*speed*dt));group.position.z=Math.max(-lim,Math.min(lim,group.position.z+dz*speed*dt));group.rotation.y=Math.atan2(dx,dz);}
  const walk=moving,elapsed=t-actionState.started;
  group.position.y=.025*Math.sin(t*1.8)+(walk?Math.abs(Math.sin(t*9))*.055:0);
  group.rotation.z=walk?Math.sin(t*9)*.025:Math.sin(t*1.4)*.006;
@@ -1117,17 +1202,26 @@ let prev=0;function loop(ms){
  runeMotes.forEach((m,i)=>{let a=t*.8+i*Math.PI*2/runeMotes.length;m.position.set(Math.cos(a)*(.23+.025*Math.sin(t*2)),3.15+Math.sin(a)*.2,Math.sin(a)*.14)});
  updateAction(t,dt);
  updateSummons(dt,t);
+ {const sw=walk?Math.sin(t*9)*.6:0;legs[1].rotation.x=sw;legs[-1].rotation.x=-sw;
+  const m=actionState.mode,live=m!=='idle'&&elapsed<actionState.duration;
+  const tgt=live?(m==='cast'?-1.35:m==='nova'?-2.2:m==='storm'?-2.9+Math.sin(t*10)*.25:-1.0):(walk?-sw*.8:Math.sin(t*1.5)*.04);
+  arms[1].rotation.x+=(tgt-arms[1].rotation.x)*Math.min(1,dt*10);arms[-1].rotation.x=(walk?sw*.4:0)+Math.sin(t*1.3)*.03;
+  const g=live?1-elapsed/actionState.duration:0;eye.emissiveIntensity=3+6*g;royalGlow.emissiveIntensity=2.4+4*g;sigilMat.opacity=.34+.4*g;sigil.rotation.y=t*(.3+g*2);
+  meadowTick(t,dt);banners.forEach((b,i)=>b.rotation.z=Math.sin(t*1.2+i)*.07);altarGems.forEach((q,i)=>{q.rotation.y=t*(1+i*.3);q.position.y+=Math.sin(t*2+i)*.0015});
+  bats.forEach(b=>{const a=t*b.sp+b.ph;b.g.position.set(Math.cos(a)*b.r,b.h+Math.sin(a*2)*.4,Math.sin(a)*b.r);b.g.rotation.y=-a;const f=.3+Math.sin(t*16+b.ph)*.7;b.w1.rotation.z=f;b.w2.rotation.z=-f})}
  // Enemies wander slightly and face the player.
  enemies.forEach(e=>{if(!e.alive)return;const dxp=group.position.x-e.mesh.position.x,dzp=group.position.z-e.mesh.position.z,dist=Math.hypot(dxp,dzp);e.mesh.rotation.y=Math.atan2(dxp,dzp);if(dist<1.25&&Math.random()<.003){hp=Math.max(0,hp-2);document.querySelector('#hpText').textContent=hp+' / 100'}});
  cameraTarget.set(group.position.x,0,group.position.z);
- const camOffset=new THREE.Vector3(9,12,9).multiplyScalar(1/zoom);
- camera.position.copy(cameraTarget).add(camOffset);camera.lookAt(group.position.x,0.9,group.position.z);
+ const camOffset=new THREE.Vector3(9,12*elev,9).applyAxisAngle(new THREE.Vector3(0,1,0),yaw).multiplyScalar(1/zoom);
+ camera.position.copy(cameraTarget).add(camOffset);if(shake>.002){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake;shake*=.88}
+ camera.lookAt(group.position.x,0.9,group.position.z);
  // Advance all independent spell effects in world space.
  for(let i=worldFX.length-1;i>=0;i--){
   const fx=worldFX[i];fx.age+=dt;const p=Math.min(1,fx.age/fx.duration);
   fx.update(fx.obj,p,dt);
   if(p>=1){scene.remove(fx.obj);worldFX.splice(i,1)}
  }
+ {const gl=worldFX.find(f=>f.obj.userData&&f.obj.userData.glow);if(gl){spellLight.position.copy(gl.obj.position);spellLight.color.setHex(gl.obj.userData.glow);spellLight.intensity=gl.obj.userData.gi}else spellLight.intensity*=.85}
  renderer.render(scene,camera);
  renderASCII();
 }
